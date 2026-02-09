@@ -95,14 +95,14 @@ function App() {
             <Hero />
           </div>
 
-          {/* Photography Section */}
-          <Suspense fallback={<SectionLoader />}>
-            <PhotographySection />
-          </Suspense>
-
           {/* Projects Section */}
           <Suspense fallback={<SectionLoader />}>
             <ProjectsSection />
+          </Suspense>
+
+          {/* Photography Section */}
+          <Suspense fallback={<SectionLoader />}>
+            <PhotographySection />
           </Suspense>
         </main>
 

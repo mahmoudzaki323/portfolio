@@ -8,8 +8,8 @@ gsap.registerPlugin(ScrollToPlugin);
 
 const navItems = [
   { id: "hero", label: "Home", icon: Home },
-  { id: "photography", label: "Photography", icon: Camera },
   { id: "projects", label: "Projects", icon: Code2 },
+  { id: "photography", label: "Photography", icon: Camera },
 ];
 
 export function Navigation() {
