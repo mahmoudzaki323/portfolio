@@ -207,31 +207,57 @@ The order of trips in the array determines the camera travel path. Order them ge
 3. Morocco (jumps back west!)
 ```
 
+## Image Hosting with Cloudinary (Recommended)
+
+Cloudinary provides 25GB free storage with automatic optimization.
+
+### Step 1: Create Account
+1. Go to [cloudinary.com/users/register_free](https://cloudinary.com/users/register_free)
+2. Sign up (free, no credit card)
+3. Note your **Cloud Name** from the dashboard (e.g., `dxyz123abc`)
+
+### Step 2: Upload Photos
+1. Go to **Media Library** in Cloudinary dashboard
+2. Create folders for each location (e.g., `portfolio/paris/`)
+3. Drag and drop photos into folders
+4. Click any image → **Copy URL**
+
+### Step 3: URL Format
+```
+Full-size:  https://res.cloudinary.com/YOUR_CLOUD/image/upload/portfolio/paris/eiffel.jpg
+Thumbnail:  https://res.cloudinary.com/YOUR_CLOUD/image/upload/w_400/portfolio/paris/eiffel.jpg
+                                                            ↑ adds width transformation
+```
+
+### Step 4: Use in trips.ts
+```typescript
+{
+  id: "paris-eiffel-1",
+  url: "https://res.cloudinary.com/YOUR_CLOUD/image/upload/portfolio/paris/eiffel.jpg",
+  thumbnail: "https://res.cloudinary.com/YOUR_CLOUD/image/upload/w_400/portfolio/paris/eiffel.jpg",
+  caption: "Eiffel Tower at sunset",
+  location: "Paris, France",
+  date: "2024-10-16"
+}
+```
+
 ---
 
-## Image Hosting Options
+## Quick Workflow Summary
 
-For hosting your photos, you can use:
-
-1. **Unsplash** (for demo/placeholder images):
-   - Format: `https://images.unsplash.com/photo-XXXXX?w=800`
-
-2. **Cloudinary** (recommended for production):
-   - Free tier: 25GB storage
-   - Auto-optimization and thumbnails
-
-3. **AWS S3 + CloudFront**:
-   - Best for high-traffic sites
-
-4. **Your own server**:
-   - Store in `/public/photos/` folder
-   - Reference as `/photos/your-image.jpg`
+1. **Upload photos** to Cloudinary (drag & drop)
+2. **Get coordinates** from Google Maps (right-click → copy)
+3. **Edit `src/data/trips.ts`** - add your location with Cloudinary URLs
+4. **Deploy**: `git add . && git commit -m "Add Paris" && git push`
+5. Vercel auto-deploys on push!
 
 ---
 
 ## Tips
 
-1. **Thumbnails**: Use 400px width for thumbnails, 1600px for full-size
+1. **Thumbnails**: Add `w_400` to Cloudinary URL for thumbnails
 2. **Unique IDs**: Always use unique IDs across all trips/albums/photos
-3. **Test**: After adding content, refresh the page and scroll through
-4. **Backup**: Keep a backup of your trips.ts file
+3. **Order matters**: Arrange trips geographically for smooth camera travel
+4. **Test locally**: Run `npm run dev` to preview before pushing
+5. **Backup**: Keep a backup of your trips.ts file
+

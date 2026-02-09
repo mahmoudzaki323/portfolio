@@ -21,153 +21,147 @@ export interface Project {
 }
 
 export const projects: Project[] = [
+  // === FEATURED PROJECTS ===
   {
-    id: "neural-viz",
-    title: "NeuralViz",
-    description: "Interactive 3D neural network visualization platform",
-    longDescription: "A real-time 3D visualization platform for deep learning models. Built with WebGL and Three.js, it allows researchers to explore network architectures, visualize activations, and understand how data flows through complex neural networks. Features interactive pruning, layer inspection, and training progression animations.",
-    thumbnail: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800",
+    id: "caresecurity-qa-agent",
+    title: "Security QA Agent",
+    description: "WhatsApp AI agent that audits security guards' attendance and uniform compliance from photos",
+    longDescription: "A production WhatsApp AI agent that transforms field photos into structured QA scores and dashboards. Security guards or supervisors send photos via WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification + Google Gemini for uniform analysis) to produce auditable attendance and compliance logs. Currently live in 2 pilot sites with planned rollout to 20+ sites.",
+    thumbnail: "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800",
     images: [
-      "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=1200",
-      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=1200",
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200"
+      "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200",
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200",
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200"
     ],
-    tags: ["React", "Three.js", "WebGL", "TensorFlow.js", "TypeScript", "Web Workers"],
+    tags: ["Node.js", "Express", "React", "Supabase", "PostgreSQL", "AWS Rekognition", "Google Gemini", "WhatsApp API", "TypeScript"],
     links: {
-      demo: "https://neural-viz.demo",
-      github: "https://github.com/username/neural-viz",
-      caseStudy: "#case-study-neural"
+      caseStudy: "#case-study-security-qa"
     },
     stats: [
-      { label: "Nodes Rendered", value: "1M+" },
-      { label: "FPS", value: "60" },
-      { label: "Models", value: "50+" }
+      { label: "Pilot Sites", value: "2" },
+      { label: "Planned Rollout", value: "20+" },
+      { label: "AI Models", value: "2" }
+    ],
+    color: "#3b82f6",
+    year: "2024",
+    featured: true
+  },
+  {
+    id: "caresecurity-workforce",
+    title: "Security Workforce Platform",
+    description: "Android-first workforce management platform for 5,000+ security personnel",
+    longDescription: "An enterprise workforce management platform designed to scale to 5,000+ users. Security supervisors use an Android app (React Native) to capture evidence via photos, GPS, NFC, and QR check-ins. Managers access real-time dashboards to track rounds, view compliance reports, and align operations with contract clauses. Features immutable audit trails and contract-aware workflows to prevent revenue deductions.",
+    thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200",
+      "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=1200"
+    ],
+    tags: ["React Native", "Expo", "Node.js", "PostgreSQL", "Supabase", "Turborepo", "TypeScript", "i18n (AR/EN)"],
+    links: {
+      caseStudy: "#case-study-security-workforce"
+    },
+    stats: [
+      { label: "Target Users", value: "5,000+" },
+      { label: "Platforms", value: "2" },
+      { label: "Languages", value: "2" }
+    ],
+    color: "#10b981",
+    year: "2024",
+    featured: true
+  },
+  {
+    id: "disruptech-portal",
+    title: "Investor Portal",
+    description: "Full-stack VC dashboard with portfolio metrics, document management, and role-based access",
+    longDescription: "A full-stack investor and admin portal for a venture capital fund. Features portfolio company tracking with key metrics, document management with categorization, a threaded messaging system between investors and admins, and granular role-based access control. Built with TypeScript across the stack, using React/TypeORM/PostgreSQL. Includes simulated AI features ready for real LLM integration.",
+    thumbnail: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200",
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200"
+    ],
+    tags: ["React", "TypeScript", "Node.js", "Express", "TypeORM", "PostgreSQL", "JWT", "Tailwind CSS"],
+    links: {
+      caseStudy: "#case-study-investor-portal"
+    },
+    stats: [
+      { label: "User Roles", value: "3" },
+      { label: "Stack", value: "Full" },
+      { label: "Auth", value: "JWT" }
     ],
     color: "#8b5cf6",
     year: "2024",
     featured: true
   },
+  // === OTHER PROJECTS ===
   {
-    id: "distributed-db",
-    title: "AeroDB",
-    description: "Distributed key-value store with consensus algorithm",
-    longDescription: "A high-performance distributed key-value store implementing the Raft consensus algorithm. Features automatic failover, data replication, and partition tolerance. Benchmarked at 100k+ ops/sec with sub-millisecond latency. Includes a built-in web dashboard for cluster monitoring and management.",
-    thumbnail: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800",
+    id: "scholar-ai",
+    title: "Scholar AI",
+    description: "Research assistant that retrieves scholarly evidence and generates structured academic arguments",
+    longDescription: "A research and argumentation assistant inspired by philosophy coursework. Uses hybrid retrieval (vector similarity + metadata filtering) from a Supabase pgvector database of scholarly works. Generates structured academic responses with thesis, supporting arguments, objections, and replies—all grounded in primary sources with full provenance. Built with Streamlit and OpenAI models.",
+    thumbnail: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800",
     images: [
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200",
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200"
+      "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200",
+      "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200"
     ],
-    tags: ["Rust", "Tokio", "gRPC", "Raft", "Kubernetes", "Prometheus"],
+    tags: ["Python", "Streamlit", "Supabase", "PostgreSQL", "pgvector", "OpenAI", "RAG"],
     links: {
-      github: "https://github.com/username/aerodb",
-      caseStudy: "#case-study-aero"
+      caseStudy: "#case-study-scholar"
     },
     stats: [
-      { label: "Throughput", value: "100k+" },
-      { label: "Latency", value: "<1ms" },
-      { label: "Nodes", value: "32" }
+      { label: "Retrieval", value: "Hybrid" },
+      { label: "Focus", value: "Academic" },
+      { label: "Model", value: "GPT-4o" }
     ],
     color: "#f59e0b",
     year: "2024",
-    featured: true
+    featured: false
   },
   {
-    id: "code-collab",
-    title: "SyncCode",
-    description: "Real-time collaborative IDE with CRDT-based sync",
-    longDescription: "A real-time collaborative code editor built on Conflict-free Replicated Data Types (CRDTs). Supports unlimited concurrent users with zero merge conflicts. Features intelligent cursor tracking, live user presence, voice chat integration, and AI-powered code suggestions. The CRDT implementation ensures consistency across all clients even with network partitions.",
-    thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800",
+    id: "vitara-voice-os",
+    title: "Vitara Voice OS",
+    description: "Voice-first OS concept for seniors to access services and healthcare through natural conversation",
+    longDescription: "A voice-first 'OS' designed for people locked out of traditional UIs—primarily seniors and those with physical or cognitive limitations. Prototype features daily health check-ins, on-demand task completion (groceries, Uber, appointments), and planned EHR integration for medication adherence and cognitive decline detection. Built with Vapi voice platform, multi-agent LangGraph system, and conducted ~10 user interviews with care facility staff.",
+    thumbnail: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800",
     images: [
-      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200",
-      "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200",
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200"
+      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200",
+      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200"
     ],
-    tags: ["TypeScript", "Yjs", "WebRTC", "Node.js", "Monaco Editor", "Socket.io"],
+    tags: ["Node.js", "Python", "LangGraph", "Vapi", "Pinecone", "PostgreSQL", "Redis", "FHIR"],
     links: {
-      demo: "https://sync-code.demo",
-      github: "https://github.com/username/synccode",
-      caseStudy: "#case-study-sync"
+      caseStudy: "#case-study-vitara"
     },
     stats: [
-      { label: "Active Users", value: "10k+" },
-      { label: "Languages", value: "40+" },
-      { label: "Uptime", value: "99.99%" }
+      { label: "Interviews", value: "10+" },
+      { label: "Target", value: "Seniors" },
+      { label: "Status", value: "Demo" }
+    ],
+    color: "#ec4899",
+    year: "2024",
+    featured: false
+  },
+  {
+    id: "digital-cairo",
+    title: "Digital Cairo Research",
+    description: "Research contributor to Duke University's historical data project on Cairo's press and urban history",
+    longDescription: "Contributed to Digital Cairo / News of Cairo, a digital humanities project at Duke University focusing on Cairo's press and urban history. Work involved research, data organization, and supporting the project's mission to preserve and analyze historical records of Egypt's journalistic heritage.",
+    thumbnail: "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=800",
+    images: [
+      "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?w=1200",
+      "https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=1200"
+    ],
+    tags: ["Research", "Digital Humanities", "Data Analysis"],
+    links: {
+      caseStudy: "#case-study-digital-cairo"
+    },
+    stats: [
+      { label: "Institution", value: "Duke" },
+      { label: "Focus", value: "History" },
+      { label: "Type", value: "Research" }
     ],
     color: "#06b6d4",
     year: "2023",
-    featured: true
-  },
-  {
-    id: "quantum-sim",
-    title: "QuSim",
-    description: "Browser-based quantum circuit simulator",
-    longDescription: "An educational quantum computing simulator that runs entirely in the browser using WebAssembly. Supports up to 16 qubits with realistic noise models and decoherence simulation. Features an intuitive drag-and-drop circuit builder, state vector visualization, and interactive Bloch spheres. Used by 5+ universities for quantum computing courses.",
-    thumbnail: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800",
-    images: [
-      "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1200",
-      "https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=1200"
-    ],
-    tags: ["Rust", "WASM", "React", "WebGL", "Quantum Computing", "Tailwind"],
-    links: {
-      demo: "https://qusim.edu",
-      github: "https://github.com/username/qusim",
-      caseStudy: "#case-study-qusim"
-    },
-    stats: [
-      { label: "Qubits", value: "16" },
-      { label: "Gates", value: "50+" },
-      { label: "Students", value: "5k+" }
-    ],
-    color: "#ec4899",
-    year: "2023",
-    featured: false
-  },
-  {
-    id: "os-kernel",
-    title: "MicroX",
-    description: "Microkernel operating system from scratch",
-    longDescription: "A minimal microkernel OS written in Rust, featuring memory safety, capability-based security, and message-passing IPC. Boots on x86_64 and RISC-V with a custom bootloader. Implements a userspace driver model, virtual file system, and preemptive multitasking. Includes a custom shell and basic Unix-like utilities.",
-    thumbnail: "https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=800",
-    images: [
-      "https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?w=1200",
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200"
-    ],
-    tags: ["Rust", "Assembly", "OS Dev", "x86_64", "RISC-V", "QEMU"],
-    links: {
-      github: "https://github.com/username/microx",
-      caseStudy: "#case-study-microx"
-    },
-    stats: [
-      { label: "Lines", value: "15k" },
-      { label: "Boot Time", value: "<100ms" },
-      { label: "Arch", value: "2" }
-    ],
-    color: "#10b981",
-    year: "2023",
-    featured: false
-  },
-  {
-    id: "compiler",
-    title: "Lumina",
-    description: "Systems language with LLVM backend",
-    longDescription: "A systems programming language with modern features: linear types for memory safety, algebraic data types, pattern matching, and zero-cost abstractions. Compiles to LLVM IR with optimizations comparable to C++ -O2. Features a self-hosted compiler, package manager, and VS Code extension with LSP support.",
-    thumbnail: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800",
-    images: [
-      "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1200",
-      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200"
-    ],
-    tags: ["Rust", "LLVM", "Parser Combinators", "Language Design", "LSP"],
-    links: {
-      github: "https://github.com/username/lumina",
-      caseStudy: "#case-study-lumina"
-    },
-    stats: [
-      { label: "Performance", value: "C++" },
-      { label: "Safety", value: "Rust" },
-      { label: "Expressive", value: "ML" }
-    ],
-    color: "#3b82f6",
-    year: "2022",
     featured: false
   }
 ];

@@ -5,6 +5,7 @@ export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Use refs for position to avoid re-renders
   const mousePos = useRef({ x: -100, y: -100 });
@@ -36,7 +37,11 @@ export function CustomCursor() {
   }, [isHovering]);
 
   useEffect(() => {
+    // Mark as mounted (prevents hydration issues)
+    setIsMounted(true);
+    
     // Only on desktop
+    if (typeof window === "undefined") return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -57,6 +62,7 @@ export function CustomCursor() {
     };
 
     const handleMouseLeave = () => setIsVisible(false);
+    const handleMouseEnter = () => setIsVisible(true);
 
     // Start animation loop
     isRunning.current = true;
@@ -65,6 +71,7 @@ export function CustomCursor() {
     document.addEventListener("mousemove", handleMouseMove, { passive: true });
     document.addEventListener("mouseover", handleMouseOver, { passive: true });
     document.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("mouseenter", handleMouseEnter);
 
     return () => {
       isRunning.current = false;
@@ -72,9 +79,12 @@ export function CustomCursor() {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("mouseenter", handleMouseEnter);
     };
   }, [updateCursor, isVisible]);
 
+  // Don't render during SSR or on touch devices
+  if (!isMounted) return null;
   if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
     return null;
   }
