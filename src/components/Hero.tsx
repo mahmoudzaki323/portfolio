@@ -168,18 +168,18 @@ export function Hero() {
           className="flex flex-wrap items-center justify-center gap-8 mt-20 pt-10 border-t border-white/10"
         >
           <div className="text-center">
-            <p className="text-4xl font-display font-bold text-white/90">5+</p>
-            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Years Experience</p>
+            <p className="text-4xl font-display font-bold text-white/90">6</p>
+            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Production Systems</p>
           </div>
           <div className="w-px h-10 bg-white/10" />
           <div className="text-center">
-            <p className="text-4xl font-display font-bold text-white/90">20+</p>
-            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Countries</p>
+            <p className="text-4xl font-display font-bold text-white/90">3</p>
+            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Industries</p>
           </div>
           <div className="w-px h-10 bg-white/10" />
           <div className="text-center">
-            <p className="text-4xl font-display font-bold text-white/90">50+</p>
-            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Projects</p>
+            <p className="text-4xl font-display font-bold text-white/90">5k+</p>
+            <p className="text-xs text-white/30 uppercase tracking-wider mt-1">Users Supported</p>
           </div>
         </div>
       </div>
