@@ -177,6 +177,17 @@ export const ProjectCard = memo(function ProjectCard({
               Code
             </a>
           )}
+          {project.links.productHunt && (
+            <a
+              href={project.links.productHunt}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-medium border border-white/15 hover:bg-white/5 transition-all duration-300 text-sm text-white/80"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Product Hunt
+            </a>
+          )}
           {project.links.caseStudy && (
             <a
               href={project.links.caseStudy}

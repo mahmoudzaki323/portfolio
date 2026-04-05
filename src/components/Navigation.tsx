@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { Menu, X, Camera, Code2, Home } from "lucide-react";
@@ -17,33 +17,65 @@ export function Navigation() {
   const [activeSection, setActiveSection] = useState("hero");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const frameRef = useRef<number | null>(null);
+  const activeSectionRef = useRef(activeSection);
+  const isScrolledRef = useRef(isScrolled);
+  const isVisibleRef = useRef(isVisible);
 
   useEffect(() => {
-    const handleScroll = () => {
+    const sectionElements = navItems.map((item) => ({
+      id: item.id,
+      element: document.getElementById(item.id),
+    }));
+
+    const updateNavigationState = () => {
       const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 100);
-      setIsVisible(scrollY > 300);
+      const nextIsScrolled = scrollY > 100;
+      const nextIsVisible = scrollY > 300;
 
-      // Determine active section
-      const sections = navItems.map((item) => ({
-        id: item.id,
-        element: document.getElementById(item.id),
-      }));
+      if (isScrolledRef.current !== nextIsScrolled) {
+        isScrolledRef.current = nextIsScrolled;
+        setIsScrolled(nextIsScrolled);
+      }
 
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
+      if (isVisibleRef.current !== nextIsVisible) {
+        isVisibleRef.current = nextIsVisible;
+        setIsVisible(nextIsVisible);
+      }
+
+      for (let i = sectionElements.length - 1; i >= 0; i--) {
+        const section = sectionElements[i];
         if (section.element) {
           const rect = section.element.getBoundingClientRect();
           if (rect.top <= window.innerHeight / 2) {
-            setActiveSection(section.id);
+            if (activeSectionRef.current !== section.id) {
+              activeSectionRef.current = section.id;
+              setActiveSection(section.id);
+            }
             break;
           }
         }
       }
     };
 
+    const handleScroll = () => {
+      if (frameRef.current !== null) return;
+
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = null;
+        updateNavigationState();
+      });
+    };
+
+    updateNavigationState();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -113,7 +145,9 @@ export function Navigation() {
             {/* CTA */}
             <div className="hidden md:block">
               <a
-                href="mailto:hello@example.com"
+                href="https://www.linkedin.com/in/mahmoudzaki-"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-full bg-white text-black hover:bg-white/90 transition-all duration-300 hover:scale-105"
               >
                 Get in Touch
@@ -159,7 +193,9 @@ export function Navigation() {
             ))}
             <div className="pt-2 border-t border-white/10">
               <a
-                href="mailto:hello@example.com"
+                href="https://www.linkedin.com/in/mahmoudzaki-"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full text-center px-4 py-3 rounded-xl bg-white text-black font-mono text-sm uppercase tracking-wider"
               >
                 Get in Touch

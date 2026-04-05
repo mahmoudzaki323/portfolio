@@ -4,6 +4,8 @@ import { X, ChevronLeft, ChevronRight, MapPin, Calendar, Aperture } from "lucide
 import { cn } from "../../lib/utils";
 import type { Trip, Album, Photo } from "../../data/trips";
 
+const SCROLL_LOCK_EVENT = "portfolio:scroll-lock";
+
 interface AlbumGalleryProps {
   trip: Trip;
   isOpen: boolean;
@@ -153,90 +155,119 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
     );
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    document.dispatchEvent(new CustomEvent(SCROLL_LOCK_EVENT, { detail: { locked: true } }));
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.dispatchEvent(new CustomEvent(SCROLL_LOCK_EVENT, { detail: { locked: false } }));
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const allPhotos = trip.albums.flatMap((album) => album.photos);
   const currentPhoto = allPhotos[activePhotoIndex];
 
   return (
-    <div
-      ref={galleryRef}
-      className="absolute inset-y-0 right-0 w-full md:w-[520px] bg-background/90 backdrop-blur-2xl border-l border-white/10 overflow-y-auto"
-    >
-      {/* Header */}
-      <div className="sticky top-0 z-10 p-6 bg-background/90 backdrop-blur-xl border-b border-white/10">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-2xl font-display font-semibold tracking-tight">{trip.name}</h2>
-            <p className="text-sm text-white/40 font-mono">{trip.country}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="fixed inset-0 z-[60] pointer-events-none">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-background/45 backdrop-blur-sm pointer-events-auto"
+        onClick={onClose}
+      />
 
-        {/* Album tabs */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
-          {trip.albums.map((album) => (
+      <div
+        ref={galleryRef}
+        className="absolute inset-y-0 right-0 w-full md:w-[520px] max-w-full bg-background/95 backdrop-blur-2xl border-l border-white/10 overflow-y-auto overscroll-contain shadow-2xl pointer-events-auto"
+        data-lenis-prevent
+        onClick={(event) => event.stopPropagation()}
+        onWheelCapture={(event) => event.stopPropagation()}
+        onTouchMoveCapture={(event) => event.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 z-10 p-6 bg-background/95 backdrop-blur-xl border-b border-white/10">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-display font-semibold tracking-tight">{trip.name}</h2>
+              <p className="text-sm text-white/40 font-mono">{trip.country}</p>
+            </div>
             <button
-              key={album.id}
-              onClick={() => setActiveAlbum(album)}
-              className={cn(
-                "px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all duration-300",
-                activeAlbum.id === album.id
-                  ? "text-black"
-                  : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10"
-              )}
-              style={{
-                backgroundColor: activeAlbum.id === album.id ? trip.color : undefined,
-              }}
+              onClick={onClose}
+              className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
             >
-              {album.title}
+              <X className="w-5 h-5" />
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Album info */}
-      <div className="p-6">
-        <p className="text-white/50 mb-6 text-sm leading-relaxed">{activeAlbum.description}</p>
-
-        {/* Photo grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {activeAlbum.photos.map((photo, idx) => {
-            const photoIndex = allPhotos.findIndex((p) => p.id === photo.id);
-            return (
+          {/* Album tabs */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {trip.albums.map((album) => (
               <button
-                key={photo.id}
-                onClick={() => {
-                  setActivePhotoIndex(photoIndex);
-                  setIsPhotoModalOpen(true);
-                }}
+                key={album.id}
+                onClick={() => setActiveAlbum(album)}
                 className={cn(
-                  "relative aspect-square rounded-xl overflow-hidden group",
-                  idx === 0 && "col-span-2 aspect-[2/1]"
+                  "px-4 py-2 rounded-full text-xs font-mono uppercase tracking-wider whitespace-nowrap transition-all duration-300",
+                  activeAlbum.id === album.id
+                    ? "text-black"
+                    : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70 border border-white/10"
                 )}
+                style={{
+                  backgroundColor: activeAlbum.id === album.id ? trip.color : undefined,
+                }}
               >
-                <img
-                  src={photo.thumbnail}
-                  alt={photo.caption}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
-                />
-                <div
-                  className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                >
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <p className="text-sm font-medium truncate">{photo.caption}</p>
-                    <p className="text-xs text-white/60">{photo.location}</p>
-                  </div>
-                </div>
+                {album.title}
               </button>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Album info */}
+        <div className="p-6">
+          <p className="text-white/50 mb-6 text-sm leading-relaxed">{activeAlbum.description}</p>
+
+          {/* Photo grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {activeAlbum.photos.map((photo, idx) => {
+              const photoIndex = allPhotos.findIndex((p) => p.id === photo.id);
+              return (
+                <button
+                  key={photo.id}
+                  onClick={() => {
+                    setActivePhotoIndex(photoIndex);
+                    setIsPhotoModalOpen(true);
+                  }}
+                  className={cn(
+                    "relative aspect-square rounded-xl overflow-hidden group",
+                    idx === 0 && "col-span-2 aspect-[2/1]"
+                  )}
+                >
+                  <img
+                    src={photo.thumbnail}
+                    alt={photo.caption}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  >
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-sm font-medium truncate">{photo.caption}</p>
+                      <p className="text-xs text-white/60">{photo.location}</p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

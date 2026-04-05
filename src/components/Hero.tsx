@@ -67,12 +67,12 @@ export function Hero() {
     return () => ctx.revert();
   }, []);
 
-  const scrollToPhotography = () => {
-    document.getElementById("photography")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const scrollToProjects = () => {
     document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const scrollToPhotography = () => {
+    document.getElementById("photography")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -138,27 +138,27 @@ export function Hero() {
           ref={subtitleRef}
           className="text-lg md:text-xl text-white/40 max-w-2xl mx-auto mb-12 leading-relaxed font-light"
         >
-          Building immersive digital experiences at the intersection of
-          <span className="text-white/70"> code</span>,
-          <span className="text-white/70"> design</span>, and
-          <span className="text-white/70"> storytelling</span>.
-          Exploring the world through photography and pushing the boundaries of web technology.
+          Building production software across AI, automation, and full-stack systems.
+          Start with the
+          <span className="text-white/70"> projects</span> that define the work,
+          then explore
+          <span className="text-white/70"> photography</span>.
         </p>
 
         {/* CTAs */}
         <div ref={ctaRef} className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
-            onClick={scrollToPhotography}
+            onClick={scrollToProjects}
             className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10"
           >
-            Explore Photography
+            View Projects
             <ArrowDown className="w-4 h-4 transition-transform group-hover:translate-y-1" />
           </button>
           <button
-            onClick={scrollToProjects}
+            onClick={scrollToPhotography}
             className="inline-flex items-center gap-3 px-8 py-4 rounded-full border border-white/15 font-medium transition-all duration-300 hover:bg-white/5 hover:border-white/30 text-white/80"
           >
-            View Projects
+            Explore Photography
           </button>
         </div>
 

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { ExternalLink, Github, ArrowRight, Zap, Cpu } from "lucide-react";
+import { ExternalLink, ArrowRight, Zap, Cpu } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Project } from "../../data/projects";
 
@@ -10,6 +10,7 @@ interface FeaturedProjectProps {
 export function FeaturedProject({ project }: FeaturedProjectProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const isContainedImage = project.imageFit === "contain";
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -79,16 +80,18 @@ export function FeaturedProject({ project }: FeaturedProjectProps) {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-10">
-              {project.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1.5 text-xs rounded-full bg-white/[0.03] border border-white/10 text-white/60 font-mono"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {!project.hideTags && (
+              <div className="flex flex-wrap gap-2 mb-10">
+                {project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1.5 text-xs rounded-full bg-white/[0.03] border border-white/10 text-white/60 font-mono"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-4">
               {project.links.demo && (
@@ -102,18 +105,18 @@ export function FeaturedProject({ project }: FeaturedProjectProps) {
                   style={{ backgroundColor: project.color, color: "#000" }}
                 >
                   <ExternalLink className="w-4 h-4" />
-                  View Live Demo
+                  Visit Website
                 </a>
               )}
-              {project.links.github && (
+              {project.links.productHunt && (
                 <a
-                  href={project.links.github}
+                  href={project.links.productHunt}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-medium border border-white/15 hover:bg-white/5 transition-all duration-300 text-white/80"
                 >
-                  <Github className="w-4 h-4" />
-                  Source
+                  <ExternalLink className="w-4 h-4" />
+                  Product Hunt
                 </a>
               )}
             </div>
@@ -122,7 +125,10 @@ export function FeaturedProject({ project }: FeaturedProjectProps) {
           {/* Image */}
           <div className="order-1 lg:order-2">
             <div
-              className="relative aspect-square rounded-3xl overflow-hidden group"
+              className={cn(
+                "relative rounded-3xl overflow-hidden group",
+                isContainedImage ? "aspect-[4/3]" : "aspect-square"
+              )}
               style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? "translateY(0)" : "translateY(30px)",
@@ -134,34 +140,49 @@ export function FeaturedProject({ project }: FeaturedProjectProps) {
                 style={{ backgroundColor: project.color }}
               />
 
-              <div className="relative h-full rounded-3xl overflow-hidden border border-white/10">
+              <div
+                className={cn(
+                  "relative h-full rounded-3xl overflow-hidden border border-white/10",
+                  isContainedImage && "bg-[#0a0a0f]"
+                )}
+              >
                 <img
                   src={project.images[0]}
                   alt={project.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  className={cn(
+                    "w-full h-full transition-transform duration-700 group-hover:scale-105",
+                    isContainedImage ? "object-contain p-6 md:p-8" : "object-cover"
+                  )}
                   loading="lazy"
                   decoding="async"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div
+                  className={cn(
+                    "absolute inset-0 bg-gradient-to-t via-transparent to-transparent",
+                    isContainedImage ? "from-black/30" : "from-black/60"
+                  )}
+                />
 
-                <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/50 backdrop-blur-xl border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="p-2 rounded-lg"
-                        style={{ backgroundColor: `${project.color}20` }}
-                      >
-                        <Cpu className="w-5 h-5" style={{ color: project.color }} />
+                {!project.hideTechStack && (
+                  <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/50 backdrop-blur-xl border border-white/10">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="p-2 rounded-lg"
+                          style={{ backgroundColor: `${project.color}20` }}
+                        >
+                          <Cpu className="w-5 h-5" style={{ color: project.color }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Tech Stack</p>
+                          <p className="text-xs text-white/50">{project.tags.slice(0, 3).join(" • ")}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">Tech Stack</p>
-                        <p className="text-xs text-white/50">{project.tags.slice(0, 3).join(" • ")}</p>
-                      </div>
+                      <ArrowRight className="w-5 h-5 text-white/40" />
                     </div>
-                    <ArrowRight className="w-5 h-5 text-white/40" />
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

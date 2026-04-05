@@ -1,3 +1,6 @@
+import nimbusDashboard from "../assets/nimbus-dashboard.jpg";
+import nimbusFrame13 from "../assets/nimbus-frame-13.jpg";
+
 export interface Project {
   id: string;
   title: string;
@@ -5,10 +8,14 @@ export interface Project {
   longDescription: string;
   thumbnail: string;
   images: string[];
+  imageFit?: "cover" | "contain";
+  hideTechStack?: boolean;
+  hideTags?: boolean;
   tags: string[];
   links: {
     demo?: string;
     github?: string;
+    productHunt?: string;
     caseStudy?: string;
   };
   stats: {
@@ -22,6 +29,33 @@ export interface Project {
 
 export const projects: Project[] = [
   // === FEATURED PROJECTS ===
+  {
+    id: "nimbus",
+    title: "Nimbus",
+    description: "AI workflow memory for macOS",
+    longDescription: "Nimbus records your workflow in the background, understands what you are doing with on-device AI analysis, and turns that activity into structured memory AI agents can query later. It combines local capture, workflow understanding, cloud sync, and MCP access into a product for people who want their real work to become reusable context.",
+    thumbnail: nimbusFrame13,
+    images: [
+      nimbusFrame13,
+      nimbusDashboard
+    ],
+    imageFit: "contain",
+    hideTechStack: true,
+    hideTags: true,
+    tags: [],
+    links: {
+      demo: "https://nimbusai.cloud",
+      productHunt: "https://www.producthunt.com/products/nimbus-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nimbus-1c165f5e-63f2-4444-9d1b-4fcf70998a35"
+    },
+    stats: [
+      { label: "AI Stages", value: "2" },
+      { label: "MCP Tools", value: "7" },
+      { label: "Platform", value: "macOS" }
+    ],
+    color: "#f97316",
+    year: "2026",
+    featured: true
+  },
   {
     id: "caresecurity-qa-agent",
     title: "Security QA Agent",

@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy, useState } from "react";
+import { useEffect, Suspense, lazy, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -34,10 +34,57 @@ function SectionLoader() {
   );
 }
 
+function DeferredPhotographySection() {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (!sentinelRef.current || shouldRender) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "600px 0px" }
+    );
+
+    observer.observe(sentinelRef.current);
+
+    return () => observer.disconnect();
+  }, [shouldRender]);
+
+  if (shouldRender) {
+    return (
+      <Suspense fallback={<SectionLoader />}>
+        <PhotographySection />
+      </Suspense>
+    );
+  }
+
+  return (
+    <section
+      id="photography"
+      ref={sentinelRef}
+      className="relative min-h-screen flex items-center justify-center border-t border-white/5 bg-background"
+    >
+      <div className="text-center px-6">
+        <p className="font-mono text-xs uppercase tracking-[0.24em] text-white/35">
+          Photography
+        </p>
+        <p className="mt-3 text-sm text-white/45">
+          Loading the gallery when you get closer.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Initialize smooth scrolling with Lenis (only after loading)
+
   useLenis();
 
   useEffect(() => {
@@ -101,9 +148,7 @@ function App() {
           </Suspense>
 
           {/* Photography Section */}
-          <Suspense fallback={<SectionLoader />}>
-            <PhotographySection />
-          </Suspense>
+          <DeferredPhotographySection />
         </main>
 
         {/* Footer */}

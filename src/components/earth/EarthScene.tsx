@@ -64,11 +64,11 @@ function Scene({
       <Stars
         radius={100}
         depth={50}
-        count={1000}
-        factor={3}
+        count={600}
+        factor={2.5}
         saturation={0}
         fade
-        speed={0.3}
+        speed={0.2}
       />
 
       {/* Earth globe */}
@@ -108,6 +108,12 @@ export function EarthScene({
   onLoad,
 }: EarthSceneProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const deviceDpr =
+    typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.25);
+  const isLowPowerDevice =
+    typeof navigator !== "undefined" &&
+    typeof navigator.hardwareConcurrency === "number" &&
+    navigator.hardwareConcurrency <= 6;
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -124,11 +130,12 @@ export function EarthScene({
           far: 1000,
         }}
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: true,
           powerPreference: "high-performance",
         }}
-        dpr={[1, 2]}
+        dpr={deviceDpr}
+        performance={{ min: 0.75 }}
         style={{ background: "transparent" }}
       >
         <Suspense fallback={null}>

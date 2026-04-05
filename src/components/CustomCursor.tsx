@@ -6,6 +6,8 @@ export function CustomCursor() {
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const isHoveringRef = useRef(false);
+  const isVisibleRef = useRef(false);
   
   // Use refs for position to avoid re-renders
   const mousePos = useRef({ x: -100, y: -100 });
@@ -29,12 +31,12 @@ export function CustomCursor() {
     ringPos.current.y += (mousePos.current.y - ringPos.current.y) * ease;
 
     // Apply transforms directly (no React state)
-    const scale = isHovering ? 1.6 : 1;
+    const scale = isHoveringRef.current ? 1.6 : 1;
     ring.style.transform = `translate(${ringPos.current.x - 20}px, ${ringPos.current.y - 20}px) scale(${scale})`;
     dot.style.transform = `translate(${mousePos.current.x - 4}px, ${mousePos.current.y - 4}px)`;
 
     rafId.current = requestAnimationFrame(updateCursor);
-  }, [isHovering]);
+  }, []);
 
   useEffect(() => {
     // Mark as mounted (prevents hydration issues)
@@ -46,7 +48,10 @@ export function CustomCursor() {
 
     const handleMouseMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
-      if (!isVisible) setIsVisible(true);
+      if (!isVisibleRef.current) {
+        isVisibleRef.current = true;
+        setIsVisible(true);
+      }
     };
 
     const handleMouseOver = (e: MouseEvent) => {
@@ -58,11 +63,35 @@ export function CustomCursor() {
         target.closest("button") ||
         target.dataset.cursor === "pointer"
       );
-      setIsHovering(isClickable);
+      if (isHoveringRef.current !== isClickable) {
+        isHoveringRef.current = isClickable;
+        setIsHovering(isClickable);
+      }
     };
 
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseEnter = () => setIsVisible(true);
+    const handleMouseLeave = () => {
+      isVisibleRef.current = false;
+      setIsVisible(false);
+    };
+    const handleMouseEnter = () => {
+      isVisibleRef.current = true;
+      setIsVisible(true);
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        isRunning.current = false;
+        if (rafId.current) {
+          cancelAnimationFrame(rafId.current);
+          rafId.current = null;
+        }
+        return;
+      }
+
+      if (!isRunning.current) {
+        isRunning.current = true;
+        rafId.current = requestAnimationFrame(updateCursor);
+      }
+    };
 
     // Start animation loop
     isRunning.current = true;
@@ -72,6 +101,7 @@ export function CustomCursor() {
     document.addEventListener("mouseover", handleMouseOver, { passive: true });
     document.addEventListener("mouseleave", handleMouseLeave);
     document.addEventListener("mouseenter", handleMouseEnter);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       isRunning.current = false;
@@ -80,8 +110,9 @@ export function CustomCursor() {
       document.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseleave", handleMouseLeave);
       document.removeEventListener("mouseenter", handleMouseEnter);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [updateCursor, isVisible]);
+  }, [updateCursor]);
 
   // Don't render during SSR or on touch devices
   if (!isMounted) return null;

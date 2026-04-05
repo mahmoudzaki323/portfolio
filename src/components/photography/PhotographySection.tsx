@@ -11,11 +11,18 @@ import { Camera, Globe, Compass, Images } from "lucide-react";
 gsap.registerPlugin(ScrollTrigger);
 
 export function PhotographySection() {
+  const hasTrips = trips.length > 0;
   const sectionRef = useRef<HTMLElement>(null);
   const cardsContainerRef = useRef<HTMLDivElement>(null);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const focusTimeoutRef = useRef<number | null>(null);
+  const lastScrollUiStateRef = useRef({
+    currentTripIndex: 0,
+    scrollProgress: 0,
+    activeTripId: trips[0]?.id ?? null,
+  });
 
-  const [activeTrip, setActiveTrip] = useState<Trip | null>(trips[0]);
+  const [activeTrip, setActiveTrip] = useState<Trip | null>(trips[0] ?? null);
   const [focusedTripId, setFocusedTripId] = useState<string | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [earthLoaded, setEarthLoaded] = useState(false);
@@ -25,6 +32,9 @@ export function PhotographySection() {
   // Determine which location should show its label based on scroll position
   // Label shows when camera is close to that location (zoomed in phases)
   const visibleLabelId = useMemo(() => {
+    if (!hasTrips) {
+      return null;
+    }
     // During first 20% of segment: show FROM location (zoomed in)
     if (scrollProgress < 0.2) {
       return trips[currentTripIndex]?.id || null;
@@ -36,20 +46,28 @@ export function PhotographySection() {
     }
     // During travel (20% - 80%), don't show any label
     return null;
-  }, [scrollProgress, currentTripIndex, trips]);
+  }, [hasTrips, scrollProgress, currentTripIndex]);
 
   // Determine if we're "zoomed in" on a city (for UI overlay purposes)
   const isZoomedIn = useMemo(() => {
-    return scrollProgress < 0.2 || scrollProgress > 0.8;
-  }, [scrollProgress]);
+    return hasTrips && (focusedTripId !== null || scrollProgress < 0.2 || scrollProgress > 0.8);
+  }, [hasTrips, focusedTripId, scrollProgress]);
 
   // Store focusedTripId in ref to avoid recreating ScrollTrigger
   const focusedTripIdRef = useRef(focusedTripId);
-  focusedTripIdRef.current = focusedTripId;
+  const isGalleryOpenRef = useRef(isGalleryOpen);
+
+  useEffect(() => {
+    focusedTripIdRef.current = focusedTripId;
+  }, [focusedTripId]);
+
+  useEffect(() => {
+    isGalleryOpenRef.current = isGalleryOpen;
+  }, [isGalleryOpen]);
 
   // Setup GSAP ScrollTrigger for precise scroll sync
   useEffect(() => {
-    if (!sectionRef.current) return;
+    if (!sectionRef.current || !hasTrips) return;
 
     // Kill any existing trigger
     if (scrollTriggerRef.current) {
@@ -76,15 +94,34 @@ export function PhotographySection() {
         const clampedIndex = Math.min(segmentIndex, segmentCount - 1);
         const segmentProgress = exactSegment - clampedIndex;
 
-        // Update React state (for UI components)
-        setCurrentTripIndex(clampedIndex);
-        setScrollProgress(segmentProgress);
+        const nextUiState = {
+          currentTripIndex: clampedIndex,
+          scrollProgress: segmentProgress,
+          activeTripId:
+            trips[
+              segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1)
+            ]?.id ?? null,
+        };
+        const previousUiState = lastScrollUiStateRef.current;
+
+        if (
+          previousUiState.currentTripIndex !== nextUiState.currentTripIndex ||
+          Math.abs(previousUiState.scrollProgress - nextUiState.scrollProgress) > 0.02
+        ) {
+          setCurrentTripIndex(nextUiState.currentTripIndex);
+          setScrollProgress(nextUiState.scrollProgress);
+        }
 
         // Update active trip (use ref to avoid stale closure)
-        if (!focusedTripIdRef.current) {
-          const activeIndex = segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1);
-          setActiveTrip(trips[activeIndex]);
+        if (!focusedTripIdRef.current && !isGalleryOpenRef.current) {
+          if (previousUiState.activeTripId !== nextUiState.activeTripId) {
+            const activeIndex =
+              segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1);
+            setActiveTrip(trips[activeIndex]);
+          }
         }
+
+        lastScrollUiStateRef.current = nextUiState;
       },
     });
 
@@ -94,7 +131,7 @@ export function PhotographySection() {
         scrollTriggerRef.current = null;
       }
     };
-  }, []); // Run once on mount
+  }, [hasTrips]); // Run once on mount when photography data is available
 
   // Scroll sidebar cards to keep active card visible
   useEffect(() => {
@@ -113,10 +150,18 @@ export function PhotographySection() {
   }, [currentTripIndex, focusedTripId]);
 
   // Click on trip card - fly to that location
+  const clearFocusTimeout = useCallback(() => {
+    if (focusTimeoutRef.current !== null) {
+      window.clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
+  }, []);
+
   const handleTripSelect = useCallback((tripId: string) => {
     const trip = trips.find((t) => t.id === tripId);
     if (!trip) return;
 
+    clearFocusTimeout();
     setFocusedTripId(tripId);
     setActiveTrip(trip);
 
@@ -135,22 +180,35 @@ export function PhotographySection() {
     }
 
     // Clear focus after animation
-    setTimeout(() => {
+    focusTimeoutRef.current = window.setTimeout(() => {
       setFocusedTripId(null);
+      focusTimeoutRef.current = null;
     }, 3000);
-  }, []);
+  }, [clearFocusTimeout]);
 
   const handleGalleryOpen = useCallback(() => {
+    if (activeTrip) {
+      clearFocusTimeout();
+      setFocusedTripId(activeTrip.id);
+    }
     setIsGalleryOpen(true);
-  }, []);
+  }, [activeTrip, clearFocusTimeout]);
 
   const handleGalleryClose = useCallback(() => {
     setIsGalleryOpen(false);
-  }, []);
+    clearFocusTimeout();
+    setFocusedTripId(null);
+  }, [clearFocusTimeout]);
+
+  useEffect(() => {
+    return () => {
+      clearFocusTimeout();
+    };
+  }, [clearFocusTimeout]);
 
   // Total section height: longer scroll for smoother, more cinematic transitions
   // ~180vh per trip ensures unhurried, comfortable journey
-  const sectionHeight = `${100 + trips.length * 180}vh`;
+  const sectionHeight = hasTrips ? `${100 + trips.length * 180}vh` : "100vh";
 
   return (
     <section ref={sectionRef} id="photography" className="relative" style={{ height: sectionHeight }}>
@@ -201,19 +259,28 @@ export function PhotographySection() {
             {/* Trip cards - scrollable */}
             <div
               ref={cardsContainerRef}
-              className="flex-1 overflow-y-auto trip-scroll space-y-3 pr-3 -mr-3"
+              className="flex-1 overflow-y-auto overscroll-contain trip-scroll space-y-3 pr-3 -mr-3"
+              data-lenis-prevent
+              onWheelCapture={(event) => event.stopPropagation()}
+              onTouchMoveCapture={(event) => event.stopPropagation()}
             >
-              {trips.map((trip, index) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  isActive={trip.id === activeTrip?.id}
-                  isFocused={trip.id === focusedTripId}
-                  index={index}
-                  onClick={() => handleTripSelect(trip.id)}
-                  progress={trip.id === activeTrip?.id ? scrollProgress : 0}
-                />
-              ))}
+              {hasTrips ? (
+                trips.map((trip, index) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    isActive={trip.id === activeTrip?.id}
+                    isFocused={trip.id === focusedTripId}
+                    index={index}
+                    onClick={() => handleTripSelect(trip.id)}
+                    progress={trip.id === activeTrip?.id ? scrollProgress : 0}
+                  />
+                ))
+              ) : (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/45">
+                  Run the Instagram sync to populate this archive with locally stored photography.
+                </div>
+              )}
             </div>
 
             {/* Footer stats */}
@@ -238,9 +305,9 @@ export function PhotographySection() {
             <div
               className="transition-all duration-700 ease-out"
               style={{
-                opacity: isZoomedIn && !isGalleryOpen ? 1 : 0,
-                transform: isZoomedIn && !isGalleryOpen ? "translateX(0)" : "translateX(30px)",
-                pointerEvents: isZoomedIn && !isGalleryOpen ? "auto" : "none",
+                opacity: hasTrips && isZoomedIn && !isGalleryOpen ? 1 : 0,
+                transform: hasTrips && isZoomedIn && !isGalleryOpen ? "translateX(0)" : "translateX(30px)",
+                pointerEvents: hasTrips && isZoomedIn && !isGalleryOpen ? "auto" : "none",
               }}
             >
               {activeTrip && (
@@ -283,7 +350,7 @@ export function PhotographySection() {
             <div
               className="absolute bottom-10 right-10 text-right pointer-events-none"
               style={{
-                opacity: isZoomedIn ? 0.5 : 0.1,
+                opacity: hasTrips && isZoomedIn ? 0.5 : 0.1,
               }}
             >
               <p className="text-[100px] leading-none font-display font-bold text-white/[0.05] tracking-tighter">
@@ -299,6 +366,7 @@ export function PhotographySection() {
         {/* Album Gallery Overlay */}
         {activeTrip && (
           <AlbumGallery
+            key={activeTrip.id}
             trip={activeTrip}
             isOpen={isGalleryOpen}
             onClose={handleGalleryClose}

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "sync:instagram": "node scripts/sync-instagram-photography.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

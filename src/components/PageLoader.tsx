@@ -8,6 +8,16 @@ interface PageLoaderProps {
 export function PageLoader({ onLoadComplete }: PageLoaderProps) {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
+  const loadingLabel =
+    progress < 30
+      ? "Loading selected work"
+      : progress < 60
+        ? "Preparing project visuals"
+        : progress < 85
+          ? "Tuning interactions"
+          : progress < 100
+            ? "Opening portfolio"
+            : "Ready";
 
   useEffect(() => {
     // Simulate loading progress
@@ -56,53 +66,54 @@ export function PageLoader({ onLoadComplete }: PageLoaderProps) {
   if (isComplete) return null;
 
   return (
-    <div className="loader-bg fixed inset-0 z-[10000] bg-background flex items-center justify-center">
-      <div className="loader-content flex flex-col items-center gap-8">
-        {/* Logo animation */}
-        <div className="relative">
-          <div className="text-6xl animate-pulse">🌍</div>
-          {/* Orbit rings */}
-          <div className="absolute inset-0 -m-4">
+    <div className="loader-bg fixed inset-0 z-[10000] overflow-hidden bg-background flex items-center justify-center">
+      <div
+        className="absolute inset-0 opacity-40"
+        style={{
+          background:
+            "radial-gradient(circle at top, rgba(59,130,246,0.16), transparent 35%), radial-gradient(circle at 80% 20%, rgba(45,212,191,0.12), transparent 30%)",
+        }}
+      />
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.2) 1px, transparent 1px)",
+          backgroundSize: "80px 80px",
+        }}
+      />
+
+      <div className="loader-content relative flex w-full max-w-md flex-col items-center gap-8 px-6 text-center">
+        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2">
+          <span className="h-2 w-2 rounded-full bg-cyan-300 animate-pulse" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-white/45">
+            Mahmoud Zaki
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          <p className="font-mono text-[11px] uppercase tracking-[0.28em] text-white/35">
+            Selected Work
+          </p>
+          <h2 className="text-4xl font-display font-bold tracking-tight text-white">
+            Portfolio
+          </h2>
+          <p className="text-sm leading-relaxed text-white/45">
+            {loadingLabel}
+          </p>
+        </div>
+
+        <div className="w-full space-y-3">
+          <div className="h-px overflow-hidden rounded-full bg-white/10">
             <div
-              className="w-full h-full border border-white/20 rounded-full animate-spin"
-              style={{ animationDuration: "3s" }}
+              className="h-full bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300 transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="absolute inset-0 -m-8">
-            <div
-              className="w-full h-full border border-white/10 rounded-full animate-spin"
-              style={{ animationDuration: "5s", animationDirection: "reverse" }}
-            />
+          <div className="flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">
+            <span>Loading</span>
+            <span>{Math.floor(progress)}%</span>
           </div>
-        </div>
-
-        {/* Loading text */}
-        <div className="text-center">
-          <p className="text-sm font-mono uppercase tracking-widest text-white/40 mb-2">
-            Loading Experience
-          </p>
-          <p className="text-2xl font-bold tabular-nums">
-            {Math.floor(progress)}%
-          </p>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-48 h-0.5 bg-white/10 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Loading messages */}
-        <div className="h-6">
-          <p className="text-xs text-white/30 animate-pulse">
-            {progress < 30 && "Initializing..."}
-            {progress >= 30 && progress < 60 && "Loading 3D Assets..."}
-            {progress >= 60 && progress < 85 && "Preparing Galleries..."}
-            {progress >= 85 && progress < 100 && "Almost Ready..."}
-            {progress >= 100 && "Launching..."}
-          </p>
         </div>
       </div>
     </div>

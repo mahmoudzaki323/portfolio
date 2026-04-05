@@ -18,7 +18,7 @@ export function Earth({ radius = 2, onLoad }: EarthProps) {
     if (texture) {
       // Ensure proper color space for vibrant colors
       texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = 16;
+      texture.anisotropy = 8;
       onLoad?.();
     }
   }, [texture, onLoad]);
@@ -28,7 +28,7 @@ export function Earth({ radius = 2, onLoad }: EarthProps) {
 
   return (
     <mesh ref={earthRef}>
-      <sphereGeometry args={[radius, 64, 64]} />
+      <sphereGeometry args={[radius, 24, 24]} />
       <meshPhongMaterial
         map={texture}
         shininess={5}
