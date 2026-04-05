@@ -110,10 +110,6 @@ export function EarthScene({
   const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
     typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.25);
-  const isLowPowerDevice =
-    typeof navigator !== "undefined" &&
-    typeof navigator.hardwareConcurrency === "number" &&
-    navigator.hardwareConcurrency <= 6;
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
