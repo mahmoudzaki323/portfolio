@@ -148,15 +148,17 @@ export function Hero() {
         {/* CTAs */}
         <div ref={ctaRef} className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
+            type="button"
             onClick={scrollToProjects}
-            className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10"
+            className="hero-cta hero-cta-primary group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white text-black font-medium"
           >
             View Projects
-            <ArrowDown className="w-4 h-4 transition-transform group-hover:translate-y-1" />
+            <ArrowDown className="w-4 h-4 transform-gpu transition-transform duration-300 group-hover:translate-y-1" />
           </button>
           <button
+            type="button"
             onClick={scrollToPhotography}
-            className="inline-flex items-center gap-3 px-8 py-4 rounded-full border border-white/15 font-medium transition-all duration-300 hover:bg-white/5 hover:border-white/30 text-white/80"
+            className="hero-cta hero-cta-secondary inline-flex items-center gap-3 px-8 py-4 rounded-full border border-white/15 font-medium text-white/80"
           >
             Explore Photography
           </button>

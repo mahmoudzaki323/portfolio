@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
 
 export function CustomCursor() {
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const isHoveringRef = useRef(false);
   const isVisibleRef = useRef(false);
   
@@ -15,42 +12,49 @@ export function CustomCursor() {
   const rafId = useRef<number | null>(null);
   const isRunning = useRef(false);
 
-  const updateCursor = useCallback(() => {
-    if (!isRunning.current) return;
-    
-    const ring = ringRef.current;
-    const dot = dotRef.current;
-    if (!ring || !dot) {
-      rafId.current = requestAnimationFrame(updateCursor);
-      return;
-    }
-
-    // Smooth lerp for ring
-    const ease = 0.12;
-    ringPos.current.x += (mousePos.current.x - ringPos.current.x) * ease;
-    ringPos.current.y += (mousePos.current.y - ringPos.current.y) * ease;
-
-    // Apply transforms directly (no React state)
-    const scale = isHoveringRef.current ? 1.6 : 1;
-    ring.style.transform = `translate(${ringPos.current.x - 20}px, ${ringPos.current.y - 20}px) scale(${scale})`;
-    dot.style.transform = `translate(${mousePos.current.x - 4}px, ${mousePos.current.y - 4}px)`;
-
-    rafId.current = requestAnimationFrame(updateCursor);
-  }, []);
-
   useEffect(() => {
-    // Mark as mounted (prevents hydration issues)
-    setIsMounted(true);
-    
     // Only on desktop
     if (typeof window === "undefined") return;
     if (window.matchMedia("(pointer: coarse)").matches) return;
+
+    const syncCursorState = () => {
+      const ring = ringRef.current;
+      const dot = dotRef.current;
+      if (!ring || !dot) return;
+
+      ring.style.opacity = isVisibleRef.current ? "1" : "0";
+      ring.style.borderColor = isHoveringRef.current
+        ? "rgba(255, 255, 255, 0.92)"
+        : "rgba(255, 255, 255, 0.6)";
+      dot.style.opacity = isVisibleRef.current && !isHoveringRef.current ? "1" : "0";
+    };
+
+    const updateCursor = () => {
+      if (!isRunning.current) return;
+
+      const ring = ringRef.current;
+      const dot = dotRef.current;
+      if (!ring || !dot) {
+        rafId.current = requestAnimationFrame(updateCursor);
+        return;
+      }
+
+      const ease = 0.12;
+      ringPos.current.x += (mousePos.current.x - ringPos.current.x) * ease;
+      ringPos.current.y += (mousePos.current.y - ringPos.current.y) * ease;
+
+      const scale = isHoveringRef.current ? 1.35 : 1;
+      ring.style.transform = `translate3d(${ringPos.current.x - 20}px, ${ringPos.current.y - 20}px, 0) scale(${scale})`;
+      dot.style.transform = `translate3d(${mousePos.current.x - 4}px, ${mousePos.current.y - 4}px, 0)`;
+
+      rafId.current = requestAnimationFrame(updateCursor);
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       mousePos.current = { x: e.clientX, y: e.clientY };
       if (!isVisibleRef.current) {
         isVisibleRef.current = true;
-        setIsVisible(true);
+        syncCursorState();
       }
     };
 
@@ -65,17 +69,17 @@ export function CustomCursor() {
       );
       if (isHoveringRef.current !== isClickable) {
         isHoveringRef.current = isClickable;
-        setIsHovering(isClickable);
+        syncCursorState();
       }
     };
 
     const handleMouseLeave = () => {
       isVisibleRef.current = false;
-      setIsVisible(false);
+      syncCursorState();
     };
     const handleMouseEnter = () => {
       isVisibleRef.current = true;
-      setIsVisible(true);
+      syncCursorState();
     };
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -91,9 +95,12 @@ export function CustomCursor() {
         isRunning.current = true;
         rafId.current = requestAnimationFrame(updateCursor);
       }
+
+      syncCursorState();
     };
 
     // Start animation loop
+    syncCursorState();
     isRunning.current = true;
     rafId.current = requestAnimationFrame(updateCursor);
 
@@ -112,11 +119,9 @@ export function CustomCursor() {
       document.removeEventListener("mouseenter", handleMouseEnter);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [updateCursor]);
+  }, []);
 
-  // Don't render during SSR or on touch devices
-  if (!isMounted) return null;
-  if (typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches) {
+  if (typeof window === "undefined" || window.matchMedia("(pointer: coarse)").matches) {
     return null;
   }
 
@@ -125,24 +130,25 @@ export function CustomCursor() {
       {/* Ring - starts off-screen */}
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 w-10 h-10 rounded-full pointer-events-none z-[9999] mix-blend-difference hidden md:flex items-center justify-center border border-white/60 transition-opacity duration-200 ${
-          isVisible ? "opacity-100" : "opacity-0"
-        } ${isHovering ? "bg-white/10" : ""}`}
+        className="fixed top-0 left-0 hidden h-10 w-10 items-center justify-center rounded-full border pointer-events-none z-[9999] mix-blend-difference transition-[opacity,border-color] duration-200 md:flex"
         style={{ 
-          transform: "translate(-100px, -100px)",
-          willChange: "transform",
+          transform: "translate3d(-100px, -100px, 0)",
+          willChange: "transform, opacity",
+          contain: "layout style paint",
+          opacity: 0,
+          borderColor: "rgba(255, 255, 255, 0.6)",
         }}
       />
       
       {/* Dot - starts off-screen */}
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 w-2 h-2 rounded-full bg-white pointer-events-none z-[9999] mix-blend-difference hidden md:block transition-opacity duration-200 ${
-          isVisible ? "opacity-100" : "opacity-0"
-        } ${isHovering ? "opacity-0" : "opacity-100"}`}
+        className="fixed top-0 left-0 hidden h-2 w-2 rounded-full bg-white pointer-events-none z-[9999] mix-blend-difference transition-opacity duration-200 md:block"
         style={{ 
-          transform: "translate(-100px, -100px)",
-          willChange: "transform",
+          transform: "translate3d(-100px, -100px, 0)",
+          willChange: "transform, opacity",
+          contain: "layout style paint",
+          opacity: 0,
         }}
       />
 
