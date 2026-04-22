@@ -2,6 +2,7 @@ import { useEffect, Suspense, lazy, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { Analytics } from "@vercel/analytics/react";
 import { Navigation } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { Footer } from "./components/Footer";
@@ -154,6 +155,9 @@ function App() {
         {/* Footer */}
         <Footer />
       </div>
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </>
   );
 }
