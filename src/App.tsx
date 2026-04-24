@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { Navigation } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { Footer } from "./components/Footer";
@@ -97,6 +98,7 @@ function App() {
         <DeferredPhotographySection />
       </main>
       <Footer />
+      <Analytics />
     </div>
   );
 }
