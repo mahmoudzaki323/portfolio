@@ -1,36 +1,31 @@
-import { useEffect, Suspense, lazy, useRef, useState } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { Navigation } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { Footer } from "./components/Footer";
-import { CustomCursor } from "./components/CustomCursor";
-import { PageLoader } from "./components/PageLoader";
-import { useLenis } from "./hooks/useLenis";
+import { ProjectsSection } from "./components/projects/ProjectsSection";
 
-// Lazy load heavy sections for better initial load performance
+// The globe and photography archive pull in Three.js and the local image index.
+// Keep that work out of the initial route until the section is near the viewport.
 const PhotographySection = lazy(() =>
   import("./components/photography/PhotographySection").then((module) => ({
     default: module.PhotographySection,
   }))
 );
 
-const ProjectsSection = lazy(() =>
-  import("./components/projects/ProjectsSection").then((module) => ({
-    default: module.ProjectsSection,
-  }))
-);
-
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-
-// Loading fallback for lazy-loaded sections
 function SectionLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-    </div>
+    <section className="section-shell min-h-[70dvh] border-t border-line">
+      <div className="mx-auto flex min-h-[70dvh] w-full max-w-site items-center px-5 md:px-8">
+        <div className="w-full max-w-xl space-y-5">
+          <div className="h-px w-24 bg-accent/70" />
+          <div className="h-12 w-4/5 animate-shimmer rounded-sm bg-white/[0.07]" />
+          <div className="space-y-3">
+            <div className="h-3 w-full animate-shimmer rounded-sm bg-white/[0.05]" />
+            <div className="h-3 w-2/3 animate-shimmer rounded-sm bg-white/[0.05]" />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -68,93 +63,41 @@ function DeferredPhotographySection() {
     <section
       id="photography"
       ref={sentinelRef}
-      className="relative min-h-screen flex items-center justify-center border-t border-white/5 bg-background"
+      className="relative flex min-h-[100dvh] items-center justify-center border-t border-line bg-background"
     >
-      <div className="text-center px-6">
-        <p className="font-mono text-xs uppercase tracking-[0.24em] text-white/35">
-          Photography
-        </p>
-        <p className="mt-3 text-sm text-white/45">
-          Loading the gallery when you get closer.
-        </p>
+      <div className="mx-auto w-full max-w-site px-5 md:px-8">
+        <div className="max-w-md space-y-5">
+          <p className="eyebrow text-accent">Photography archive</p>
+          <h2 className="text-4xl font-display font-semibold text-primary md:text-6xl">
+            The globe loads when it matters.
+          </h2>
+          <p className="max-w-[48ch] text-sm leading-7 text-secondary">
+            The 3D archive is deferred until you approach it, keeping the first
+            screen fast while preserving the interactive travel view.
+          </p>
+        </div>
       </div>
     </section>
   );
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useLenis();
-
-  useEffect(() => {
-    // Configure ScrollTrigger defaults
-    ScrollTrigger.defaults({
-      markers: false,
-    });
-
-    // Refresh ScrollTrigger on window resize
-    const handleResize = () => {
-      ScrollTrigger.refresh();
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, []);
-
-  const handleLoadComplete = () => {
-    setIsLoading(false);
-    // Refresh ScrollTrigger after loading
-    setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 100);
-  };
-
   return (
-    <>
-      {/* Page Loader */}
-      {isLoading && <PageLoader onLoadComplete={handleLoadComplete} />}
-
-      {/* Custom Cursor */}
-      <CustomCursor />
-
-      <div className="relative min-h-screen bg-background text-foreground">
-        {/* Noise texture overlay */}
-        <div
-          className="fixed inset-0 pointer-events-none z-[100] opacity-[0.015]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-
-        {/* Navigation */}
-        <Navigation />
-
-        {/* Main content */}
-        <main>
-          {/* Hero Section */}
-          <div id="hero">
-            <Hero />
-          </div>
-
-          {/* Projects Section */}
-          <Suspense fallback={<SectionLoader />}>
-            <ProjectsSection />
-          </Suspense>
-
-          {/* Photography Section */}
-          <DeferredPhotographySection />
-        </main>
-
-        {/* Footer */}
-        <Footer />
-      </div>
-    </>
+    <div className="relative min-h-[100dvh] overflow-x-clip bg-background text-primary">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <div className="grain-layer" aria-hidden="true" />
+      <Navigation />
+      <main id="main">
+        <div id="hero">
+          <Hero />
+        </div>
+        <ProjectsSection />
+        <DeferredPhotographySection />
+      </main>
+      <Footer />
+    </div>
   );
 }
 

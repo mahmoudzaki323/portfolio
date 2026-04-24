@@ -16,13 +16,13 @@ export default defineConfig({
       output: {
         manualChunks: {
           'three-vendor': ['three', '@react-three/fiber', '@react-three/drei'],
-          'animation-vendor': ['gsap', '@gsap/react'],
+          'animation-vendor': ['gsap'],
         },
       },
     },
   },
   optimizeDeps: {
-    include: ['three', 'gsap', '@react-three/fiber', '@react-three/drei', 'lenis'],
+    include: ['three', 'gsap', '@react-three/fiber', '@react-three/drei'],
   },
   server: {
     port: 5173,

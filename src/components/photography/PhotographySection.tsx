@@ -1,14 +1,18 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { gsap } from "gsap";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ArrowUpRight, Camera, Globe2, Images, Map } from "lucide-react";
 import { EarthScene } from "../earth/EarthScene";
 import { TripCard } from "./TripCard";
 import { AlbumGallery } from "./AlbumGallery";
 import { trips, type Trip } from "../../data/trips";
 import { updateScrollState } from "../../lib/scrollState";
-import { Camera, Globe, Compass, Images } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
+
+function coordinateLabel(value: number, positive: string, negative: string) {
+  return `${Math.abs(value).toFixed(4)} ${value >= 0 ? positive : negative}`;
+}
 
 export function PhotographySection() {
   const hasTrips = trips.length > 0;
@@ -29,33 +33,30 @@ export function PhotographySection() {
   const [currentTripIndex, setCurrentTripIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  // Determine which location should show its label based on scroll position
-  // Label shows when camera is close to that location (zoomed in phases)
+  const focusedTripIdRef = useRef(focusedTripId);
+  const isGalleryOpenRef = useRef(isGalleryOpen);
+
+  const totals = useMemo(() => {
+    const albums = trips.reduce((sum, trip) => sum + trip.albums.length, 0);
+    const frames = trips.reduce(
+      (sum, trip) => sum + trip.albums.reduce((albumSum, album) => albumSum + album.photos.length, 0),
+      0
+    );
+
+    return { albums, frames };
+  }, []);
+
   const visibleLabelId = useMemo(() => {
-    if (!hasTrips) {
-      return null;
-    }
-    // During first 20% of segment: show FROM location (zoomed in)
-    if (scrollProgress < 0.2) {
-      return trips[currentTripIndex]?.id || null;
-    }
-    // During last 20% of segment: show TO location (zoomed in)
-    if (scrollProgress > 0.8) {
+    if (!hasTrips) return null;
+    if (scrollProgress < 0.22) return trips[currentTripIndex]?.id || null;
+    if (scrollProgress > 0.78) {
       const nextIndex = Math.min(currentTripIndex + 1, trips.length - 1);
       return trips[nextIndex]?.id || null;
     }
-    // During travel (20% - 80%), don't show any label
     return null;
   }, [hasTrips, scrollProgress, currentTripIndex]);
 
-  // Determine if we're "zoomed in" on a city (for UI overlay purposes)
-  const isZoomedIn = useMemo(() => {
-    return hasTrips && (focusedTripId !== null || scrollProgress < 0.2 || scrollProgress > 0.8);
-  }, [hasTrips, focusedTripId, scrollProgress]);
-
-  // Store focusedTripId in ref to avoid recreating ScrollTrigger
-  const focusedTripIdRef = useRef(focusedTripId);
-  const isGalleryOpenRef = useRef(isGalleryOpen);
+  const isZoomedIn = hasTrips && (focusedTripId !== null || scrollProgress < 0.22 || scrollProgress > 0.78);
 
   useEffect(() => {
     focusedTripIdRef.current = focusedTripId;
@@ -65,91 +66,82 @@ export function PhotographySection() {
     isGalleryOpenRef.current = isGalleryOpen;
   }, [isGalleryOpen]);
 
-  // Setup GSAP ScrollTrigger for precise scroll sync
   useEffect(() => {
     if (!sectionRef.current || !hasTrips) return;
 
-    // Kill any existing trigger
-    if (scrollTriggerRef.current) {
-      scrollTriggerRef.current.kill();
-    }
+    ScrollTrigger.defaults({ markers: false });
+    scrollTriggerRef.current?.kill();
+    let resizeFrame = 0;
 
     const totalTrips = trips.length;
-    const segmentCount = totalTrips - 1;
+    const segmentCount = Math.max(totalTrips - 1, 1);
 
     scrollTriggerRef.current = ScrollTrigger.create({
       trigger: sectionRef.current,
       start: "top top",
       end: "bottom bottom",
-      scrub: 0.3,
+      scrub: 0.25,
       onUpdate: (self) => {
         const progress = self.progress;
-
-        // Update global scroll state FIRST (synchronous, for CameraController)
         updateScrollState(progress, segmentCount);
 
-        // Map progress to segment for React state
         const exactSegment = progress * segmentCount;
         const segmentIndex = Math.floor(exactSegment);
         const clampedIndex = Math.min(segmentIndex, segmentCount - 1);
         const segmentProgress = exactSegment - clampedIndex;
+        const activeIndex =
+          segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1);
 
         const nextUiState = {
           currentTripIndex: clampedIndex,
           scrollProgress: segmentProgress,
-          activeTripId:
-            trips[
-              segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1)
-            ]?.id ?? null,
+          activeTripId: trips[activeIndex]?.id ?? null,
         };
         const previousUiState = lastScrollUiStateRef.current;
 
         if (
           previousUiState.currentTripIndex !== nextUiState.currentTripIndex ||
-          Math.abs(previousUiState.scrollProgress - nextUiState.scrollProgress) > 0.02
+          Math.abs(previousUiState.scrollProgress - nextUiState.scrollProgress) > 0.04
         ) {
           setCurrentTripIndex(nextUiState.currentTripIndex);
           setScrollProgress(nextUiState.scrollProgress);
         }
 
-        // Update active trip (use ref to avoid stale closure)
-        if (!focusedTripIdRef.current && !isGalleryOpenRef.current) {
-          if (previousUiState.activeTripId !== nextUiState.activeTripId) {
-            const activeIndex =
-              segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1);
-            setActiveTrip(trips[activeIndex]);
-          }
+        if (
+          !focusedTripIdRef.current &&
+          !isGalleryOpenRef.current &&
+          previousUiState.activeTripId !== nextUiState.activeTripId
+        ) {
+          setActiveTrip(trips[activeIndex]);
         }
 
         lastScrollUiStateRef.current = nextUiState;
       },
     });
 
-    return () => {
-      if (scrollTriggerRef.current) {
-        scrollTriggerRef.current.kill();
-        scrollTriggerRef.current = null;
-      }
+    const handleResize = () => {
+      if (resizeFrame) cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
     };
-  }, [hasTrips]); // Run once on mount when photography data is available
 
-  // Scroll sidebar cards to keep active card visible
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      if (resizeFrame) cancelAnimationFrame(resizeFrame);
+      window.removeEventListener("resize", handleResize);
+      scrollTriggerRef.current?.kill();
+      scrollTriggerRef.current = null;
+    };
+  }, [hasTrips]);
+
   useEffect(() => {
     if (!cardsContainerRef.current || focusedTripId) return;
 
     const container = cardsContainerRef.current;
-    const cardHeight = 160;
-    const containerHeight = container.clientHeight;
-    const targetScroll = currentTripIndex * cardHeight - containerHeight / 2 + cardHeight / 2;
-
-    gsap.to(container, {
-      scrollTop: Math.max(0, targetScroll),
-      duration: 0.6,
-      ease: "power2.out",
-    });
+    const activeCard = container.querySelector<HTMLElement>(`[data-trip-index="${currentTripIndex}"]`);
+    activeCard?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [currentTripIndex, focusedTripId]);
 
-  // Click on trip card - fly to that location
   const clearFocusTimeout = useCallback(() => {
     if (focusTimeoutRef.current !== null) {
       window.clearTimeout(focusTimeoutRef.current);
@@ -157,34 +149,31 @@ export function PhotographySection() {
     }
   }, []);
 
-  const handleTripSelect = useCallback((tripId: string) => {
-    const trip = trips.find((t) => t.id === tripId);
-    if (!trip) return;
+  const handleTripSelect = useCallback(
+    (tripId: string) => {
+      const trip = trips.find((item) => item.id === tripId);
+      if (!trip) return;
 
-    clearFocusTimeout();
-    setFocusedTripId(tripId);
-    setActiveTrip(trip);
+      clearFocusTimeout();
+      setFocusedTripId(tripId);
+      setActiveTrip(trip);
 
-    // Scroll page to align with this trip
-    const tripIndex = trips.findIndex((t) => t.id === tripId);
-    if (sectionRef.current && scrollTriggerRef.current && tripIndex >= 0) {
-      const sectionHeight = sectionRef.current.offsetHeight - window.innerHeight;
-      // Scroll to the START of this trip's segment (or beginning for first trip)
-      const targetProgress = tripIndex === 0 ? 0 : (tripIndex - 0.5) / (trips.length - 1);
-      const targetScroll = sectionRef.current.offsetTop + sectionHeight * Math.max(0, targetProgress);
+      const tripIndex = trips.findIndex((item) => item.id === tripId);
+      if (sectionRef.current && tripIndex >= 0) {
+        const scrollableDistance = sectionRef.current.offsetHeight - window.innerHeight;
+        const targetProgress = tripIndex === 0 ? 0 : (tripIndex - 0.45) / Math.max(trips.length - 1, 1);
+        const targetScroll = sectionRef.current.offsetTop + scrollableDistance * Math.max(0, targetProgress);
 
-      window.scrollTo({
-        top: targetScroll,
-        behavior: "smooth",
-      });
-    }
+        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      }
 
-    // Clear focus after animation
-    focusTimeoutRef.current = window.setTimeout(() => {
-      setFocusedTripId(null);
-      focusTimeoutRef.current = null;
-    }, 3000);
-  }, [clearFocusTimeout]);
+      focusTimeoutRef.current = window.setTimeout(() => {
+        setFocusedTripId(null);
+        focusTimeoutRef.current = null;
+      }, 2500);
+    },
+    [clearFocusTimeout]
+  );
 
   const handleGalleryOpen = useCallback(() => {
     if (activeTrip) {
@@ -200,21 +189,13 @@ export function PhotographySection() {
     setFocusedTripId(null);
   }, [clearFocusTimeout]);
 
-  useEffect(() => {
-    return () => {
-      clearFocusTimeout();
-    };
-  }, [clearFocusTimeout]);
+  useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
-  // Total section height: longer scroll for smoother, more cinematic transitions
-  // ~180vh per trip ensures unhurried, comfortable journey
-  const sectionHeight = hasTrips ? `${100 + trips.length * 180}vh` : "100vh";
+  const sectionHeight = hasTrips ? `${120 + trips.length * 120}vh` : "100vh";
 
   return (
-    <section ref={sectionRef} id="photography" className="relative" style={{ height: sectionHeight }}>
-      {/* Sticky container */}
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Earth background */}
+    <section ref={sectionRef} id="photography" className="relative bg-background" style={{ height: sectionHeight }}>
+      <div className="sticky top-0 h-[100dvh] overflow-hidden border-b border-line">
         <div className="absolute inset-0 z-0">
           <EarthScene
             activeTrip={activeTrip}
@@ -227,143 +208,171 @@ export function PhotographySection() {
           />
         </div>
 
-        {/* Dark overlay gradient for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50 z-10 pointer-events-none" />
+        <div className="absolute inset-0 z-10 bg-[linear-gradient(90deg,var(--color-background)_0%,rgba(8,10,9,0.9)_28%,rgba(8,10,9,0.18)_70%,rgba(8,10,9,0.68)_100%)] pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-background to-transparent pointer-events-none" />
 
-        {/* Content */}
-        <div className="relative z-20 h-full flex">
-          {/* Left panel - Trip cards */}
-          <div className="w-full md:w-[480px] h-full flex flex-col p-6 md:p-8 lg:p-10">
-            {/* Header */}
-            <div className="mb-6 flex-shrink-0">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 rounded-xl bg-white/5 border border-white/10">
-                  <Camera className="w-5 h-5 text-white/70" />
-                </div>
-                <span className="text-xs font-mono uppercase tracking-[0.2em] text-white/40">
-                  Photography
-                </span>
+        <div className="relative z-20 mx-auto flex h-full max-w-site px-5 py-14 md:px-8 md:py-16">
+          <aside className="flex h-full w-full max-w-[31rem] flex-col border-r border-line pr-0 md:pr-8">
+            <div className="shrink-0 border-b border-line pb-5">
+              <div className="mb-4 flex items-center gap-3 text-accent">
+                <Camera className="h-5 w-5" />
+                <p className="eyebrow">Photography archive</p>
               </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-2 tracking-tight">
-                Through the
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300">
-                  Lens
-                </span>
+              <h2 className="max-w-[10ch] text-3xl font-semibold leading-tight text-primary md:text-4xl">
+                Explore the world through my lens.
               </h2>
-              <p className="text-white/40 text-sm leading-relaxed max-w-sm">
-                Scroll to travel the globe or click a destination to explore.
+              <p className="mt-4 max-w-[42ch] text-sm leading-6 text-secondary">
+                Scroll to move the camera, or choose a destination to open the
+                album archive tied to that place.
               </p>
+
+              <div className="mt-5 grid grid-cols-3 divide-x divide-line border-y border-line py-4">
+                <div>
+                  <p className="mono-tabular text-2xl text-primary">{trips.length}</p>
+                  <p className="mt-1 text-xs text-tertiary">destinations</p>
+                </div>
+                <div className="pl-5">
+                  <p className="mono-tabular text-2xl text-primary">{totals.frames}</p>
+                  <p className="mt-1 text-xs text-tertiary">frames</p>
+                </div>
+                <div className="pl-5">
+                  <p className="mono-tabular text-2xl text-primary">{totals.albums}</p>
+                  <p className="mt-1 text-xs text-tertiary">albums</p>
+                </div>
+              </div>
             </div>
 
-            {/* Trip cards - scrollable */}
+            <div className="mt-4 flex items-center justify-between text-xs uppercase text-tertiary">
+              <span>Destinations</span>
+              <span className="text-accent">Scroll route</span>
+            </div>
+
             <div
               ref={cardsContainerRef}
-              className="flex-1 overflow-y-auto overscroll-contain trip-scroll space-y-3 pr-3 -mr-3"
-              data-lenis-prevent
+              className="trip-scroll mt-4 flex-1 overflow-y-auto overscroll-contain pr-3"
               onWheelCapture={(event) => event.stopPropagation()}
               onTouchMoveCapture={(event) => event.stopPropagation()}
             >
-              {hasTrips ? (
-                trips.map((trip, index) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    isActive={trip.id === activeTrip?.id}
-                    isFocused={trip.id === focusedTripId}
-                    index={index}
-                    onClick={() => handleTripSelect(trip.id)}
-                    progress={trip.id === activeTrip?.id ? scrollProgress : 0}
-                  />
-                ))
-              ) : (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-white/45">
-                  Run the Instagram sync to populate this archive with locally stored photography.
-                </div>
-              )}
-            </div>
-
-            {/* Footer stats */}
-            <div className="mt-6 pt-5 border-t border-white/10 flex-shrink-0">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-white/40">
-                  <Globe className="w-4 h-4" />
-                  <span className="font-mono">{trips.length} destinations</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/40">
-                  <Compass className="w-4 h-4" />
-                  <span className="font-mono">
-                    {trips.reduce((acc, t) => acc + t.albums.length, 0)} albums
-                  </span>
-                </div>
+              <div className="divide-y divide-line">
+                {hasTrips ? (
+                  trips.map((trip, index) => (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      isActive={trip.id === activeTrip?.id}
+                      isFocused={trip.id === focusedTripId}
+                      index={index}
+                      onClick={() => handleTripSelect(trip.id)}
+                      progress={trip.id === activeTrip?.id ? scrollProgress : 0}
+                    />
+                  ))
+                ) : (
+                  <div className="glass-panel-soft p-6 text-sm leading-7 text-secondary">
+                    Run the Instagram sync to populate this archive with local
+                    photography.
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Right side - Album preview when zoomed in */}
-          <div className="hidden md:flex flex-1 items-center justify-end p-10">
-            <div
-              className="transition-all duration-700 ease-out"
-              style={{
-                opacity: hasTrips && isZoomedIn && !isGalleryOpen ? 1 : 0,
-                transform: hasTrips && isZoomedIn && !isGalleryOpen ? "translateX(0)" : "translateX(30px)",
-                pointerEvents: hasTrips && isZoomedIn && !isGalleryOpen ? "auto" : "none",
-              }}
-            >
-              {activeTrip && (
-                <button
-                  onClick={handleGalleryOpen}
-                  className="group relative p-6 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-sm hover:bg-white/[0.08] transition-all duration-300"
-                >
-                  <div className="flex items-center gap-4 mb-4">
-                    <div
-                      className="p-3 rounded-xl"
-                      style={{ backgroundColor: `${activeTrip.color}20` }}
-                    >
-                      <Images className="w-6 h-6" style={{ color: activeTrip.color }} />
-                    </div>
-                    <div>
-                      <p className="text-lg font-display font-semibold">{activeTrip.name}</p>
-                      <p className="text-sm text-white/40">{activeTrip.albums.length} albums</p>
-                    </div>
-                  </div>
-
-                  {/* Album thumbnails grid */}
-                  <div className="grid grid-cols-2 gap-2 w-64">
-                    {activeTrip.albums.slice(0, 4).map((album) => (
-                      <div key={album.id} className="aspect-square rounded-lg overflow-hidden">
-                        <img
-                          src={album.coverImage}
-                          alt={album.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <p className="mt-4 text-xs text-white/30 text-center">Click to explore albums</p>
-                </button>
-              )}
+            <div className="mt-4 flex shrink-0 items-center gap-3 border-t border-line pt-4 text-sm text-secondary">
+              <Map className="h-4 w-4 text-accent" />
+              <span>Each pin is a chapter.</span>
             </div>
 
-            {/* Progress indicator */}
-            <div
-              className="absolute bottom-10 right-10 text-right pointer-events-none"
-              style={{
-                opacity: hasTrips && isZoomedIn ? 0.5 : 0.1,
-              }}
-            >
-              <p className="text-[100px] leading-none font-display font-bold text-white/[0.05] tracking-tighter">
-                {String(currentTripIndex + 1).padStart(2, "0")}
-              </p>
-              <p className="text-sm text-white/20 -mt-3 font-mono">
-                / {String(trips.length).padStart(2, "0")}
-              </p>
-            </div>
+            {activeTrip && (
+              <button
+                type="button"
+                onClick={handleGalleryOpen}
+                className="glass-panel focus-ring mt-3 flex shrink-0 items-center justify-between gap-4 p-4 text-left transition duration-300 active:translate-y-px md:hidden"
+              >
+                <span>
+                  <span className="block text-sm font-medium text-primary">Open {activeTrip.name} album</span>
+                  <span className="mt-1 block text-xs text-tertiary">
+                    {activeTrip.albums.length} album{activeTrip.albums.length === 1 ? "" : "s"}
+                  </span>
+                </span>
+                <Images className="h-4 w-4 shrink-0 text-accent" />
+              </button>
+            )}
+          </aside>
+
+          <div className="hidden flex-1 items-end justify-end pb-14 md:flex">
+            {activeTrip && (
+              <button
+                type="button"
+                onClick={handleGalleryOpen}
+                className="glass-panel focus-ring group w-[min(30rem,42vw)] p-5 text-left transition duration-500"
+                style={{
+                  opacity: hasTrips && isZoomedIn && !isGalleryOpen ? 1 : 0,
+                  transform:
+                    hasTrips && isZoomedIn && !isGalleryOpen
+                      ? "translate3d(0, 0, 0)"
+                      : "translate3d(1.5rem, 0, 0)",
+                  pointerEvents: hasTrips && isZoomedIn && !isGalleryOpen ? "auto" : "none",
+                }}
+              >
+                <div className="mb-5 flex items-start justify-between">
+                  <div>
+                    <p className="mono-tabular text-sm text-accent">
+                      {String(currentTripIndex + 1).padStart(2, "0")} / {activeTrip.name}
+                    </p>
+                    <p className="mt-2 text-xs text-tertiary">
+                      {coordinateLabel(activeTrip.coordinates.lat, "N", "S")},{" "}
+                      {coordinateLabel(activeTrip.coordinates.lng, "E", "W")}
+                    </p>
+                  </div>
+                  <ArrowUpRight className="h-5 w-5 text-accent transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {activeTrip.albums.slice(0, 3).map((album, index) => (
+                    <div key={album.id} className={index === 0 ? "col-span-2 row-span-2" : ""}>
+                      <img
+                        src={album.coverImage}
+                        alt={album.title}
+                        className="aspect-square h-full w-full border border-line object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
+                  <span className="inline-flex items-center gap-2 text-sm text-primary">
+                    <Images className="h-4 w-4 text-accent" />
+                    View album
+                  </span>
+                  <span className="text-xs text-tertiary">
+                    {activeTrip.albums.length} album{activeTrip.albums.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Album Gallery Overlay */}
+        <div className="absolute right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 text-tertiary lg:flex">
+          <Globe2 className="h-5 w-5 text-accent" />
+          <div className="h-28 w-px bg-line" />
+          <span className="mono-tabular text-xs">
+            {String(currentTripIndex + 1).padStart(2, "0")} / {String(trips.length).padStart(2, "0")}
+          </span>
+        </div>
+
+        {!earthLoaded && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/90">
+            <div className="w-full max-w-sm px-6 text-center">
+              <p className="eyebrow text-accent">Loading globe</p>
+              <div className="mt-5 h-px overflow-hidden bg-line">
+                <div className="h-full animate-shimmer bg-accent" />
+              </div>
+              <p className="mt-5 text-sm text-secondary">Preparing destinations and map texture.</p>
+            </div>
+          </div>
+        )}
+
         {activeTrip && (
           <AlbumGallery
             key={activeTrip.id}
@@ -371,16 +380,6 @@ export function PhotographySection() {
             isOpen={isGalleryOpen}
             onClose={handleGalleryClose}
           />
-        )}
-
-        {/* Loading indicator */}
-        {!earthLoaded && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-sm text-white/50 font-mono">Initializing 3D Earth...</p>
-            </div>
-          </div>
         )}
       </div>
     </section>

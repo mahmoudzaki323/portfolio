@@ -70,7 +70,7 @@ export function createPhoto(
     date: string;
 } {
     const urls = getPhotoUrls(path);
-    const id = path.replace(/[\/\.]/g, '-').replace(/-+/g, '-');
+    const id = path.replace(/[/.]/g, '-').replace(/-+/g, '-');
 
     return {
         id,

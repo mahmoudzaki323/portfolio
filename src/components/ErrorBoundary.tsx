@@ -29,21 +29,21 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         this.props.fallback || (
-          <div className="min-h-screen flex items-center justify-center p-6">
-            <div className="max-w-md w-full">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h2 className="text-2xl font-bold mb-4">Something went wrong</h2>
-              <p className="text-white/60 mb-6">
+          <div className="flex min-h-[100dvh] items-center justify-center bg-background p-6">
+            <div className="glass-panel-soft w-full max-w-md p-6">
+              <div className="mb-5 h-px w-16 bg-accent" />
+              <h2 className="mb-4 text-2xl font-semibold text-primary">Something went wrong</h2>
+              <p className="mb-6 text-secondary">
                 An error occurred while rendering this section.
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 rounded-full bg-white text-black font-medium hover:bg-white/90 transition-colors"
+                className="action-primary focus-ring px-6 py-3 font-medium"
               >
-                Refresh Page
+                Refresh page
               </button>
               {this.state.error && (
-                <div className="mt-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div className="mt-6 border border-red-500/20 bg-red-500/10 p-4">
                   <p className="text-sm text-red-400 font-mono mb-2">Error:</p>
                   <p className="text-xs text-red-300/80 font-mono break-all">
                     {this.state.error.toString()}
@@ -51,7 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </div>
               )}
               {this.state.errorInfo && (
-                <pre className="mt-4 p-4 rounded-lg bg-white/5 text-left text-xs text-white/40 overflow-auto max-h-40">
+                <pre className="mt-4 max-h-40 overflow-auto bg-white/5 p-4 text-left text-xs text-white/40">
                   {this.state.errorInfo.componentStack}
                 </pre>
               )}

@@ -1,42 +1,47 @@
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 const EARTH_TEXTURE = "https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg";
+const EARTH_LIGHTS_TEXTURE = "https://threejs.org/examples/textures/planets/earth_lights_2048.png";
 
 interface EarthProps {
   radius?: number;
-  rotationSpeed?: number;
   onLoad?: () => void;
 }
 
 export function Earth({ radius = 2, onLoad }: EarthProps) {
-  const earthRef = useRef<THREE.Mesh>(null);
-  const texture = useTexture(EARTH_TEXTURE);
+  const [texture, lightsTexture] = useTexture([EARTH_TEXTURE, EARTH_LIGHTS_TEXTURE]);
 
   useEffect(() => {
-    if (texture) {
-      // Ensure proper color space for vibrant colors
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = 8;
+    if (texture && lightsTexture) {
       onLoad?.();
     }
-  }, [texture, onLoad]);
-
-  // The coordinate conversion in latLngToVector3 handles texture alignment
-  // No additional rotation needed
+  }, [texture, lightsTexture, onLoad]);
 
   return (
-    <mesh ref={earthRef}>
-      <sphereGeometry args={[radius, 24, 24]} />
-      <meshPhongMaterial
-        map={texture}
-        shininess={5}
-        specular={new THREE.Color(0x333333)}
-        // Slight emissive to brighten dark areas
-        emissive={new THREE.Color(0x112244)}
-        emissiveIntensity={0.1}
-      />
-    </mesh>
+    <group>
+      <mesh>
+        <sphereGeometry args={[radius, 48, 48]} />
+        <meshStandardMaterial
+          map={texture}
+          color="#a7b5ae"
+          roughness={0.88}
+          metalness={0}
+          emissive="#071110"
+          emissiveIntensity={0.12}
+        />
+      </mesh>
+      <mesh>
+        <sphereGeometry args={[radius * 1.002, 48, 48]} />
+        <meshBasicMaterial
+          map={lightsTexture}
+          transparent
+          opacity={0.55}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
   );
 }

@@ -1,268 +1,166 @@
-import { useState, useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { Menu, X, Camera, Code2, Home } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
 
-gsap.registerPlugin(ScrollToPlugin);
-
 const navItems = [
-  { id: "hero", label: "Home", icon: Home },
-  { id: "projects", label: "Projects", icon: Code2 },
-  { id: "photography", label: "Photography", icon: Camera },
+  { id: "projects", label: "Work" },
+  { id: "photography", label: "Photography" },
+  { id: "contact", label: "Contact" },
 ];
 
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 export function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
   const frameRef = useRef<number | null>(null);
-  const activeSectionRef = useRef(activeSection);
-  const isScrolledRef = useRef(isScrolled);
-  const isVisibleRef = useRef(isVisible);
 
   useEffect(() => {
-    const sectionElements = navItems.map((item) => ({
-      id: item.id,
-      element: document.getElementById(item.id),
-    }));
+    const updateNavigation = () => {
+      setIsScrolled(window.scrollY > 24);
 
-    const updateNavigationState = () => {
-      const scrollY = window.scrollY;
-      const nextIsScrolled = scrollY > 100;
-      const nextIsVisible = scrollY > 300;
+      const checkpoint = window.innerHeight * 0.42;
+      const sectionIds = ["hero", ...navItems.map((item) => item.id)];
+      let nextActive = "hero";
 
-      if (isScrolledRef.current !== nextIsScrolled) {
-        isScrolledRef.current = nextIsScrolled;
-        setIsScrolled(nextIsScrolled);
-      }
+      for (const id of sectionIds) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const rect = element.getBoundingClientRect();
 
-      if (isVisibleRef.current !== nextIsVisible) {
-        isVisibleRef.current = nextIsVisible;
-        setIsVisible(nextIsVisible);
-      }
-
-      for (let i = sectionElements.length - 1; i >= 0; i--) {
-        const section = sectionElements[i];
-        if (section.element) {
-          const rect = section.element.getBoundingClientRect();
-          if (rect.top <= window.innerHeight / 2) {
-            if (activeSectionRef.current !== section.id) {
-              activeSectionRef.current = section.id;
-              setActiveSection(section.id);
-            }
-            break;
-          }
+        if (rect.top <= checkpoint && rect.bottom > checkpoint) {
+          nextActive = id;
+          break;
         }
       }
+
+      setActiveSection(nextActive);
     };
 
     const handleScroll = () => {
       if (frameRef.current !== null) return;
-
       frameRef.current = requestAnimationFrame(() => {
         frameRef.current = null;
-        updateNavigationState();
+        updateNavigation();
       });
     };
 
-    updateNavigationState();
-
+    updateNavigation();
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+
     return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current);
-      }
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      gsap.to(window, {
-        duration: 1.2,
-        scrollTo: { y: element, offsetY: 0 },
-        ease: "power3.inOut",
-      });
-    }
+  const handleNavClick = (id: string) => {
+    scrollToSection(id);
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <>
-      {/* Main Navigation */}
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-          isVisible ? "translate-y-0" : "-translate-y-full"
+          "mx-auto flex max-w-site items-center justify-between border px-4 py-3 transition-colors duration-300 md:px-5",
+          isScrolled
+            ? "glass-panel border-line bg-background/82 backdrop-blur-xl"
+            : "border-transparent bg-transparent"
         )}
+        aria-label="Primary navigation"
       >
-        <div
-          className={cn(
-            "mx-4 mt-4 rounded-2xl transition-all duration-500",
-            isScrolled
-              ? "bg-background/80 backdrop-blur-xl border border-white/10 shadow-lg shadow-black/20"
-              : "bg-transparent"
-          )}
+        <button
+          type="button"
+          onClick={() => handleNavClick("hero")}
+          className="focus-ring flex items-center gap-3 text-left"
+          aria-label="Back to top"
         >
-          <div className="flex items-center justify-between px-6 py-4">
-            {/* Logo */}
+          <span className="grid h-10 w-10 place-items-center border border-line font-display text-lg font-semibold text-primary">
+            MZ
+          </span>
+          <span className="hidden font-mono text-xs uppercase text-secondary sm:block">
+            Mahmoud Zaki
+          </span>
+        </button>
+
+        <div className="hidden items-center gap-1 md:flex">
+          {navItems.map((item) => (
             <button
-              onClick={() => scrollToSection("hero")}
-              className="text-lg font-display font-bold tracking-tight"
+              key={item.id}
+              type="button"
+              onClick={() => handleNavClick(item.id)}
+              className={cn(
+                "focus-ring relative px-4 py-2 text-sm transition-colors duration-200",
+                activeSection === item.id ? "text-primary" : "text-tertiary hover:text-primary"
+              )}
             >
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-                Portfolio
-              </span>
-            </button>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={cn(
-                    "relative px-4 py-2 text-sm font-medium transition-all duration-300 rounded-full",
-                    activeSection === item.id
-                      ? "text-white"
-                      : "text-white/50 hover:text-white/80"
-                  )}
-                >
-                  {activeSection === item.id && (
-                    <span className="absolute inset-0 bg-white/10 rounded-full" />
-                  )}
-                  <span className="relative flex items-center gap-2 font-mono text-xs uppercase tracking-wider">
-                    <item.icon className="w-3.5 h-3.5" />
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="hidden md:block">
-              <a
-                href="https://www.linkedin.com/in/mahmoudzaki-"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 text-xs font-mono uppercase tracking-wider rounded-full bg-white text-black hover:bg-white/90 transition-all duration-300 hover:scale-105"
-              >
-                Get in Touch
-              </a>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-xl bg-white/5 border border-white/10"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
+              <span>{item.label}</span>
+              {activeSection === item.id && (
+                <span className="absolute inset-x-4 -bottom-px h-px bg-accent" />
               )}
             </button>
-          </div>
+          ))}
         </div>
 
-        {/* Mobile Menu */}
-        <div
-          className={cn(
-            "md:hidden mx-4 mt-2 rounded-2xl bg-background/95 backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-300",
-            isMobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-          )}
+        <a
+          href="https://www.linkedin.com/in/mahmoudzaki-"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="action-secondary focus-ring hidden items-center gap-2 px-4 py-2 text-sm md:inline-flex"
         >
-          <div className="p-4 space-y-2">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-300",
-                  activeSection === item.id
-                    ? "bg-white/10 text-white"
-                    : "text-white/60 hover:bg-white/5"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="font-mono text-sm uppercase tracking-wider">{item.label}</span>
-              </button>
-            ))}
-            <div className="pt-2 border-t border-white/10">
-              <a
-                href="https://www.linkedin.com/in/mahmoudzaki-"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center px-4 py-3 rounded-xl bg-white text-black font-mono text-sm uppercase tracking-wider"
-              >
-                Get in Touch
-              </a>
-            </div>
-          </div>
-        </div>
+          Get in touch
+          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+        </a>
+
+        <button
+          type="button"
+          onClick={() => setIsMobileMenuOpen((value) => !value)}
+          className="icon-action focus-ring grid h-10 w-10 place-items-center border border-line md:hidden"
+          aria-label="Toggle menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </nav>
 
-      {/* Floating side navigation */}
       <div
         className={cn(
-          "fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-3 transition-all duration-500",
-          activeSection === "photography" && isVisible
-            ? "opacity-100 translate-x-0"
-            : "opacity-0 translate-x-10 pointer-events-none"
+          "mx-auto mt-2 max-w-site overflow-hidden border border-line bg-background/95 backdrop-blur-xl transition-all duration-300 md:hidden",
+          isMobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
         )}
       >
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => scrollToSection(item.id)}
-            className={cn(
-              "group relative p-3 rounded-full transition-all duration-300",
-              activeSection === item.id
-                ? "bg-white text-black"
-                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
-            )}
-            title={item.label}
-          >
-            <item.icon className="w-4 h-4" />
-            {/* Tooltip */}
-            <span className="absolute right-full mr-3 px-3 py-1.5 rounded-lg bg-background/90 border border-white/10 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-mono">
+        <div className="p-3">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => handleNavClick(item.id)}
+              className={cn(
+                "focus-ring flex w-full items-center justify-between border-b border-line px-3 py-4 text-left text-sm",
+                activeSection === item.id ? "text-primary" : "text-secondary"
+              )}
+            >
               {item.label}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Progress indicator */}
-      <div
-        className={cn(
-          "fixed left-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-center gap-4 transition-all duration-500",
-          isVisible ? "opacity-100" : "opacity-0"
-        )}
-      >
-        <div className="w-px h-24 bg-white/10 relative overflow-hidden">
-          <div
-            className="absolute top-0 left-0 w-full bg-gradient-to-b from-blue-400 to-cyan-300 transition-all duration-300"
-            style={{
-              height: `${
-                (navItems.findIndex((i) => i.id === activeSection) /
-                  Math.max(navItems.length - 1, 1)) *
-                100
-              }%`,
-            }}
-          />
+              <ArrowUpRight className="h-4 w-4" />
+            </button>
+          ))}
+          <a
+            href="https://www.linkedin.com/in/mahmoudzaki-"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="action-primary focus-ring mt-3 flex items-center justify-between px-4 py-3 text-sm font-medium"
+          >
+            Get in touch
+            <ArrowUpRight className="h-4 w-4" />
+          </a>
         </div>
-        <span 
-          className="text-xs font-mono text-white/40"
-          style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-        >
-          {String(navItems.findIndex((i) => i.id === activeSection) + 1).padStart(2, "0")}
-          <span className="text-white/20 mx-1">/</span>
-          {String(navItems.length).padStart(2, "0")}
-        </span>
       </div>
-    </>
+    </header>
   );
 }

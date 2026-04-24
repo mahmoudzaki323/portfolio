@@ -4,6 +4,7 @@ import { Stars, useProgress } from "@react-three/drei";
 import { Earth } from "./Earth";
 import { Atmosphere } from "./Atmosphere";
 import { LocationMarkers } from "./LocationMarkers";
+import { RouteArcs } from "./RouteArcs";
 import { CameraController } from "./CameraController";
 import { trips, type Trip } from "../../data/trips";
 
@@ -32,9 +33,8 @@ function Loader({ onLoad }: { onLoad?: () => void }) {
 
 function Scene({
   activeTrip,
+  isOverview = true,
   currentTripIndex = 0,
-  scrollProgress = 0,
-  visibleLabelId,
   onTripSelect,
   onLoad,
 }: EarthSceneProps) {
@@ -44,53 +44,50 @@ function Scene({
     <>
       <Loader onLoad={onLoad} />
 
-      {/* Lighting - bright and balanced for photorealistic look */}
-      <ambientLight intensity={0.8} />
+      <ambientLight intensity={0.62} />
       <directionalLight
-        position={[5, 3, 5]}
-        intensity={3}
-        color="#fffef0"
+        position={[4.5, 2.5, 4]}
+        intensity={1.8}
+        color="#f2efe7"
       />
       <directionalLight
         position={[-3, -1, -3]}
-        intensity={1.2}
-        color="#b0c4de"
+        intensity={0.45}
+        color="#49b8aa"
       />
       <hemisphereLight
-        args={["#b0d8ff", "#283040", 0.4]}
+        args={["#b7f1e8", "#151b1a", 0.22]}
       />
 
-      {/* Subtle star background */}
       <Stars
         radius={100}
         depth={50}
-        count={600}
-        factor={2.5}
+        count={360}
+        factor={2}
         saturation={0}
         fade
-        speed={0.2}
+        speed={0.08}
       />
 
-      {/* Earth globe */}
-      <Earth radius={RADIUS} rotationSpeed={0.00015} />
+      <Earth radius={RADIUS} />
 
-      {/* Subtle atmosphere glow */}
       <Atmosphere radius={RADIUS} />
 
-      {/* Location markers */}
+      <RouteArcs
+        trips={trips}
+        radius={RADIUS}
+        activeIndex={currentTripIndex}
+      />
+
       <LocationMarkers
         trips={trips}
         radius={RADIUS}
         activeTripId={activeTrip?.id}
-        visibleLabelId={visibleLabelId}
-        currentTripIndex={currentTripIndex}
-        scrollProgress={scrollProgress}
         onTripSelect={onTripSelect}
       />
 
-      {/* Camera with zoom functionality - reads from global scroll state */}
       <CameraController
-        targetTrip={activeTrip}
+        targetTrip={isOverview ? null : activeTrip}
         trips={trips}
         radius={RADIUS}
       />
@@ -102,14 +99,12 @@ export function EarthScene({
   activeTrip,
   isOverview,
   currentTripIndex,
-  scrollProgress,
-  visibleLabelId,
   onTripSelect,
   onLoad,
 }: EarthSceneProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
-    typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.25);
+    typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.1);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -120,8 +115,8 @@ export function EarthScene({
     <div className="relative w-full h-full">
       <Canvas
         camera={{
-          position: [0, 1, 8],
-          fov: 45,
+          position: [0, 0.8, 9],
+          fov: 42,
           near: 0.1,
           far: 1000,
         }}
@@ -139,8 +134,6 @@ export function EarthScene({
             activeTrip={activeTrip}
             isOverview={isOverview}
             currentTripIndex={currentTripIndex}
-            scrollProgress={scrollProgress}
-            visibleLabelId={visibleLabelId}
             onTripSelect={onTripSelect}
             onLoad={handleLoad}
           />
@@ -148,10 +141,12 @@ export function EarthScene({
       </Canvas>
 
       {!isLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm pointer-events-none">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-            <span className="text-sm text-white/60">Loading Earth...</span>
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/70">
+          <div className="w-full max-w-xs px-6 text-center">
+            <span className="eyebrow text-accent">Loading Earth</span>
+            <div className="mt-4 h-px overflow-hidden bg-line">
+              <div className="h-full animate-shimmer bg-accent" />
+            </div>
           </div>
         </div>
       )}

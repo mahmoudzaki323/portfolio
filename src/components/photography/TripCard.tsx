@@ -1,5 +1,4 @@
-import { useRef, useEffect } from "react";
-import { MapPin, Calendar, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Calendar, MapPin } from "lucide-react";
 import { cn, formatDateRange } from "../../lib/utils";
 import type { Trip } from "../../data/trips";
 
@@ -12,148 +11,92 @@ interface TripCardProps {
   progress: number;
 }
 
-export function TripCard({ trip, isActive, isFocused, index, onClick, progress }: TripCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+function coordinateLabel(value: number, axis: "lat" | "lng") {
+  const suffix = axis === "lat" ? (value >= 0 ? "N" : "S") : value >= 0 ? "E" : "W";
+  return `${Math.abs(value).toFixed(2)} ${suffix}`;
+}
 
-  // Apply glow effect via CSS custom property
-  useEffect(() => {
-    if (cardRef.current && isActive) {
-      cardRef.current.style.setProperty("--trip-color", trip.color);
-    }
-  }, [isActive, trip.color]);
+export function TripCard({ trip, isActive, isFocused, index, onClick, progress }: TripCardProps) {
+  const frameCount = trip.albums.reduce((sum, album) => sum + album.photos.length, 0);
 
   return (
-    <div
-      ref={cardRef}
-      className={cn(
-        "relative group cursor-pointer transition-all duration-500 ease-out",
-        "rounded-2xl overflow-hidden",
-        isActive ? "z-10" : "z-0",
-        isActive && "trip-card-active"
-      )}
+    <button
+      type="button"
+      data-trip-index={index}
       onClick={onClick}
+      className={cn(
+        "focus-ring group block w-full py-4 text-left transition duration-300",
+        isActive ? "opacity-100" : "opacity-55 hover:opacity-85"
+      )}
       style={{
-        opacity: isActive ? 1 : 0.35,
-        transform: `translateX(${isActive ? 0 : -8}px) scale(${isActive ? 1 : 0.98})`,
+        transform: isActive ? "translate3d(0, 0, 0)" : "translate3d(-0.25rem, 0, 0)",
       }}
     >
-      {/* Card background with glass effect */}
-      <div 
+      <div
         className={cn(
-          "absolute inset-0 rounded-2xl overflow-hidden transition-all duration-500",
-          isActive 
-            ? "bg-white/[0.06] border border-white/[0.12]" 
-            : "bg-white/[0.02] border border-transparent hover:bg-white/[0.04]"
+          "relative grid grid-cols-[3rem_5rem_1fr] gap-4 overflow-hidden pr-3",
+          isActive && "pl-3"
         )}
       >
-        {/* Progress bar at bottom */}
         <div
-          className="absolute bottom-0 left-0 h-[2px] transition-all duration-150 ease-out"
-          style={{
-            width: `${progress * 100}%`,
-            backgroundColor: trip.color,
-          }}
+          className={cn(
+            "absolute inset-y-0 left-0 w-px bg-line transition-colors duration-300",
+            isActive && "bg-accent"
+          )}
+        />
+        <div
+          className="absolute bottom-0 left-0 h-px bg-accent transition-[width] duration-150"
+          style={{ width: `${Math.min(1, Math.max(0, progress)) * 100}%` }}
         />
 
-        {/* Top accent line */}
-        <div
-          className="absolute top-0 left-0 w-full h-[2px] opacity-60"
-          style={{
-            background: isActive
-              ? `linear-gradient(90deg, ${trip.color} 0%, transparent 100%)`
-              : "transparent",
-          }}
-        />
+        <div className="mono-tabular pt-1 text-sm text-tertiary">
+          {String(index + 1).padStart(2, "0")}
+        </div>
 
-        {/* Glow effect for active state */}
-        {isActive && (
-          <div
-            className="absolute -inset-px rounded-2xl opacity-20 blur-sm pointer-events-none"
-            style={{
-              background: `radial-gradient(circle at 30% 50%, ${trip.color}40 0%, transparent 70%)`,
-            }}
-          />
-        )}
-
-        {/* Focus indicator */}
-        {isFocused && (
-          <div className="absolute inset-0 bg-white/5 animate-pulse" />
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="relative p-5 flex gap-4">
-        {/* Thumbnail */}
-        <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden">
+        <div className="relative aspect-square overflow-hidden border border-line bg-surface">
           <img
             src={trip.thumbnail}
-            alt={trip.name}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            alt={`${trip.name} photography thumbnail`}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
             loading="lazy"
             decoding="async"
           />
-          {/* Color overlay */}
-          <div
-            className="absolute inset-0 opacity-30 mix-blend-overlay"
-            style={{ backgroundColor: trip.color }}
-          />
-          {/* Index badge */}
-          <div className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-            <span className="text-[10px] font-mono font-medium text-white/80">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-          </div>
+          <div className={cn("absolute inset-0 bg-background/20", isFocused && "animate-pulse")} />
         </div>
 
-        {/* Info */}
-        <div className="flex flex-col justify-center min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="text-[10px] font-mono uppercase tracking-wider"
-              style={{ color: trip.color }}
-            >
-              {trip.country}
-            </span>
-            {isActive && (
-              <ArrowUpRight className="w-3 h-3 text-white/50 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            )}
+        <div className="min-w-0">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <p className={cn("text-lg font-medium", isActive ? "text-primary" : "text-secondary")}>
+              {trip.name}
+            </p>
+            <ArrowUpRight
+              className={cn(
+                "h-4 w-4 shrink-0 transition duration-300",
+                isActive ? "text-accent" : "text-tertiary group-hover:text-accent"
+              )}
+            />
           </div>
 
-          <h3 className="text-lg font-display font-semibold text-white mb-1 truncate tracking-tight">
-            {trip.name}
-          </h3>
+          <p className="text-xs text-accent/85">{trip.country}</p>
 
-          <div className="flex items-center gap-3 text-xs text-white/40 mb-2">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {trip.coordinates.lat.toFixed(2)}°, {trip.coordinates.lng.toFixed(2)}°
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-tertiary">
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" />
+              {coordinateLabel(trip.coordinates.lat, "lat")},{" "}
+              {coordinateLabel(trip.coordinates.lng, "lng")}
             </span>
-            <span className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1.5">
+              <Calendar className="h-3 w-3" />
               {formatDateRange(trip.dateRange.start, trip.dateRange.end)}
             </span>
           </div>
 
-          <p className="text-xs text-white/30 line-clamp-2 leading-relaxed">
-            {trip.description}
-          </p>
-
-          {/* Album count */}
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-[10px] text-white/25 font-mono">
-              {trip.albums.length} album{trip.albums.length !== 1 ? "s" : ""}
-            </span>
-            <div
-              className="h-px flex-1 transition-all duration-500"
-              style={{
-                background: isActive
-                  ? `linear-gradient(90deg, ${trip.color}40 0%, transparent 100%)`
-                  : "transparent",
-              }}
-            />
+          <div className="mt-3 flex items-center justify-between gap-3 text-xs text-tertiary">
+            <span>{trip.albums.length} albums</span>
+            <span>{frameCount} frames</span>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

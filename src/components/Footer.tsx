@@ -1,126 +1,80 @@
-import { Github, Linkedin, Twitter, Mail, ArrowUpRight, Heart } from "lucide-react";
+import { ArrowUpRight, Github, Linkedin, MoveUpRight } from "lucide-react";
 
-const socialLinks = [
-  { name: "GitHub", icon: Github, url: "https://github.com" },
-  { name: "LinkedIn", icon: Linkedin, url: "https://linkedin.com" },
-  { name: "Twitter", icon: Twitter, url: "https://twitter.com" },
-  { name: "Email", icon: Mail, url: "mailto:hello@example.com" },
-];
+function scrollToSection(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
-const footerLinks = [
-  {
-    title: "Navigation",
-    links: [
-      { label: "Home", href: "#hero" },
-      { label: "Photography", href: "#photography" },
-      { label: "Projects", href: "#projects" },
-    ],
-  },
-  {
-    title: "Connect",
-    links: [
-      { label: "GitHub", href: "https://github.com" },
-      { label: "LinkedIn", href: "https://linkedin.com" },
-      { label: "Twitter", href: "https://twitter.com" },
-    ],
-  },
+const footerNav = [
+  { label: "Work", id: "projects" },
+  { label: "Photography", id: "photography" },
+  { label: "Top", id: "hero" },
 ];
 
 export function Footer() {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
-    <footer className="relative border-t border-white/10 bg-background">
-      {/* Main footer content */}
-      <div className="container mx-auto px-6 py-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Brand */}
-          <div className="lg:col-span-2">
-            <h3 className="text-3xl md:text-4xl font-display font-bold mb-4 tracking-tight">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-teal-300">
-                Let&apos;s Connect
-              </span>
-            </h3>
-            <p className="text-white/40 max-w-md mb-8 leading-relaxed">
-              Always interested in hearing about new projects, creative ideas,
-              or opportunities to be part of your vision.
+    <footer id="contact" className="section-shell border-t border-line">
+      <div className="mx-auto max-w-site px-5 py-16 md:px-8 md:py-24">
+        <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <p className="eyebrow mb-5 text-accent">Contact</p>
+            <h2 className="max-w-[11ch] text-5xl font-semibold leading-[0.96] text-primary md:text-7xl">
+              Mahmoud Zaki.
+            </h2>
+            <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary">
+              AI systems, full-stack platforms, automation, and research
+              tooling.
             </p>
+          </div>
 
-            {/* Social links */}
-            <div className="flex gap-3">
-              {socialLinks.map((social) => (
-                <a
-                  key={social.name}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-white/50 hover:bg-white/[0.06] hover:text-white hover:border-white/20 transition-all duration-300 hover:scale-110"
-                  aria-label={social.name}
+          <div className="grid content-between gap-10 border-l-0 border-line lg:border-l lg:pl-10">
+            <div className="grid gap-px overflow-hidden border border-line bg-line">
+              <a
+                href="https://www.linkedin.com/in/mahmoudzaki-"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between bg-background p-5 transition-colors hover:bg-background-soft"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <Linkedin className="h-5 w-5 text-accent" />
+                  LinkedIn
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" />
+              </a>
+              <a
+                href="https://github.com/mahmoudzaki323"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between bg-background p-5 transition-colors hover:bg-background-soft"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <Github className="h-5 w-5 text-accent" />
+                  GitHub
+                </span>
+                <ArrowUpRight className="h-4 w-4 text-tertiary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent" />
+              </a>
+            </div>
+
+            <div className="grid gap-3">
+              {footerNav.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => scrollToSection(item.id)}
+                  className="focus-ring flex items-center justify-between border-b border-line py-3 text-left text-sm text-secondary transition-colors hover:text-primary"
                 >
-                  <social.icon className="w-5 h-5" />
-                </a>
+                  {item.label}
+                  <MoveUpRight className="h-4 w-4" />
+                </button>
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Links */}
-          {footerLinks.map((group) => (
-            <div key={group.title}>
-              <h4 className="text-xs font-mono font-medium uppercase tracking-[0.2em] text-white/30 mb-5">
-                {group.title}
-              </h4>
-              <ul className="space-y-3">
-                {group.links.map((link) => (
-                  <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="group inline-flex items-center gap-2 text-white/50 hover:text-white transition-colors duration-300"
-                    >
-                      {link.label}
-                      <ArrowUpRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="mt-16 flex flex-col justify-between gap-4 border-t border-line pt-6 text-sm text-tertiary md:flex-row md:items-center">
+          <p className="font-mono">&copy; {new Date().getFullYear()} Mahmoud Zaki</p>
+          <p>React, TypeScript, Tailwind, Three.js</p>
         </div>
       </div>
-
-      {/* Bottom bar */}
-      <div className="border-t border-white/5">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-white/30 flex items-center gap-1.5 font-mono">
-              Crafted with <Heart className="w-3.5 h-3.5 text-red-400 inline" /> using
-              <span className="text-white/50">React</span>, 
-              <span className="text-white/50">Three.js</span> & 
-              <span className="text-white/50">Tailwind</span>
-            </p>
-
-            <div className="flex items-center gap-6">
-              <span className="text-xs text-white/20 font-mono">
-                &copy; {new Date().getFullYear()} All rights reserved
-              </span>
-              <button
-                onClick={scrollToTop}
-                className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.06] transition-all duration-300 hover:scale-105"
-                aria-label="Scroll to top"
-              >
-                <ArrowUpRight className="w-4 h-4 -rotate-45" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Background decoration */}
-      <div 
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[150px] pointer-events-none opacity-30"
-        style={{ background: "radial-gradient(circle, #1e3a5f 0%, transparent 70%)" }}
-      />
     </footer>
   );
 }

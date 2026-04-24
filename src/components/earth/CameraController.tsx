@@ -31,8 +31,11 @@ export function CameraController({
   // Store trips in ref for useFrame access
   const tripsRef = useRef(trips);
   const radiusRef = useRef(radius);
-  tripsRef.current = trips;
-  radiusRef.current = radius;
+
+  useEffect(() => {
+    tripsRef.current = trips;
+    radiusRef.current = radius;
+  }, [trips, radius]);
 
   // Smoothed camera state
   const smoothPosition = useRef(new THREE.Vector3(0, 0, 8));
@@ -64,10 +67,10 @@ export function CameraController({
     r: number
   ): { position: THREE.Vector3; lookAt: THREE.Vector3 } => {
     // Camera distance bounds
-    const ZOOM_IN = r * 2.2;
-    const ZOOM_OUT = r * 5.5;
-    const ELEVATION_IN = r * 0.3;
-    const ELEVATION_OUT = r * 1.0;
+    const ZOOM_IN = r * 4.05;
+    const ZOOM_OUT = r * 6.25;
+    const ELEVATION_IN = r * 0.55;
+    const ELEVATION_OUT = r * 1.1;
 
     // Animation phases:
     // 0.00 - 0.15: Hold at FROM location (zoomed in)
@@ -136,8 +139,10 @@ export function CameraController({
   // Handle click-to-zoom
   useEffect(() => {
     if (!targetTrip) {
-      if (isClickZoomed.current && clickTimeoutRef.current) {
+      isClickZoomed.current = false;
+      if (clickTimeoutRef.current) {
         clearTimeout(clickTimeoutRef.current);
+        clickTimeoutRef.current = null;
       }
       return;
     }
@@ -147,8 +152,8 @@ export function CameraController({
 
     const { position, lookAt } = getLocationCamera(
       targetTrip,
-      radiusRef.current * 2.2,
-      radiusRef.current * 0.3,
+      radiusRef.current * 3.55,
+      radiusRef.current * 0.5,
       radiusRef.current
     );
 
@@ -203,7 +208,7 @@ export function CameraController({
       // At or past last segment - stay zoomed in on final destination
       const lastTrip = allTrips[lastTripIndex];
       if (lastTrip) {
-        const cam = getLocationCamera(lastTrip, r * 2.2, r * 0.3, r);
+        const cam = getLocationCamera(lastTrip, r * 4.05, r * 0.55, r);
         targetPosition.current.copy(cam.position);
         targetLookAt.current.copy(cam.lookAt);
       }
@@ -232,14 +237,4 @@ export function CameraController({
   });
 
   return null;
-}
-
-export function shouldShowLocationLabel(
-  locationIndex: number,
-  currentTripIndex: number,
-  scrollProgress: number
-): boolean {
-  if (currentTripIndex === locationIndex && scrollProgress < 0.15) return true;
-  if (currentTripIndex === locationIndex - 1 && scrollProgress > 0.85) return true;
-  return false;
 }
