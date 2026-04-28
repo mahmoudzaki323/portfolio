@@ -68,13 +68,13 @@ function DeferredPhotographySection() {
     >
       <div className="mx-auto w-full max-w-site px-5 md:px-8">
         <div className="max-w-md space-y-5">
-          <p className="eyebrow text-accent">Photography archive</p>
+          <p className="eyebrow text-accent">Photography</p>
           <h2 className="text-4xl font-display font-semibold text-primary md:text-6xl">
-            The globe loads when it matters.
+            Travel and photo archives.
           </h2>
           <p className="max-w-[48ch] text-sm leading-7 text-secondary">
-            The 3D archive is deferred until you approach it, keeping the first
-            screen fast while preserving the interactive travel view.
+            The interactive map and albums load here as you scroll down the
+            page.
           </p>
         </div>
       </div>

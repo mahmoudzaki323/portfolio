@@ -216,14 +216,14 @@ export function PhotographySection() {
             <div className="shrink-0 border-b border-line pb-5">
               <div className="mb-4 flex items-center gap-3 text-accent">
                 <Camera className="h-5 w-5" />
-                <p className="eyebrow">Photography archive</p>
+                <p className="eyebrow">Photography</p>
               </div>
               <h2 className="max-w-[10ch] text-3xl font-semibold leading-tight text-primary md:text-4xl">
-                Explore the world through my lens.
+                Travel photography, organized by place.
               </h2>
               <p className="mt-4 max-w-[42ch] text-sm leading-6 text-secondary">
-                Scroll to move the camera, or choose a destination to open the
-                album archive tied to that place.
+                Scroll through destinations or open an album directly from the
+                map.
               </p>
 
               <div className="mt-5 grid grid-cols-3 divide-x divide-line border-y border-line py-4">
@@ -277,7 +277,7 @@ export function PhotographySection() {
 
             <div className="mt-4 flex shrink-0 items-center gap-3 border-t border-line pt-4 text-sm text-secondary">
               <Map className="h-4 w-4 text-accent" />
-              <span>Each pin is a chapter.</span>
+              <span>Each pin opens a trip archive.</span>
             </div>
 
             {activeTrip && (

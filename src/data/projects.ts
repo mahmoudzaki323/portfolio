@@ -38,8 +38,8 @@ export const projects: Project[] = [
   {
     id: "nimbus",
     title: "Nimbus",
-    description: "AI workflow memory for macOS",
-    longDescription: "Nimbus records your workflow in the background, understands what you are doing with on-device AI analysis, and turns that activity into structured memory AI agents can query later. It combines local capture, workflow understanding, cloud sync, and MCP access into a product for people who want their real work to become reusable context.",
+    description: "macOS app for turning workflow history into AI context",
+    longDescription: "Nimbus turns day-to-day desktop activity into structured context AI agents can use later. It captures workflows locally, parses what happened, syncs that history to the cloud, and exposes it through MCP so real work becomes reusable memory instead of scattered tabs and transcripts.",
     thumbnail: nimbusFrame13,
     images: [
       nimbusFrame13,
@@ -65,7 +65,7 @@ export const projects: Project[] = [
   {
     id: "caresecurity-qa-agent",
     title: "Security QA Agent",
-    description: "WhatsApp AI agent that audits security guards' attendance and uniform compliance from photos",
+    description: "WhatsApp QA tool for attendance and uniform checks from field photos",
     longDescription: "A production WhatsApp AI agent that transforms field photos into structured QA scores and dashboards. Security guards or supervisors send photos via WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification + Google Gemini for uniform analysis) to produce auditable attendance and compliance logs. Currently live in 2 pilot sites with planned rollout to 20+ sites.",
     thumbnail: securityQaAgentImage,
     images: [
@@ -109,8 +109,8 @@ export const projects: Project[] = [
   {
     id: "disruptech-portal",
     title: "Investor Portal",
-    description: "Full-stack VC dashboard with portfolio metrics, document management, and role-based access",
-    longDescription: "A full-stack investor and admin portal for a venture capital fund. Features portfolio company tracking with key metrics, document management with categorization, a threaded messaging system between investors and admins, and granular role-based access control. Built with TypeScript across the stack, using React/TypeORM/PostgreSQL. Includes simulated AI features ready for real LLM integration.",
+    description: "Investor portal for portfolio data, documents, and role-based access",
+    longDescription: "An investor and admin portal for a venture capital fund. It tracks portfolio company metrics, organizes documents, supports threaded communication between investors and admins, and enforces granular permissions. Built with TypeScript using React, TypeORM, and PostgreSQL.",
     thumbnail: investorPortalImage,
     images: [
       investorPortalImage
@@ -132,7 +132,7 @@ export const projects: Project[] = [
   {
     id: "scholar-ai",
     title: "Scholar AI",
-    description: "Research assistant that retrieves scholarly evidence and generates structured academic arguments",
+    description: "Research assistant for finding sources and structuring academic arguments",
     longDescription: "A research and argumentation assistant inspired by philosophy coursework. Uses hybrid retrieval (vector similarity + metadata filtering) from a Supabase pgvector database of scholarly works. Generates structured academic responses with thesis, supporting arguments, objections, and replies—all grounded in primary sources with full provenance. Built with Streamlit and OpenAI models.",
     thumbnail: scholarAiImage,
     images: [
@@ -154,8 +154,8 @@ export const projects: Project[] = [
   {
     id: "vitara-voice-os",
     title: "Vitara Voice OS",
-    description: "Voice-first OS concept for seniors to access services and healthcare through natural conversation",
-    longDescription: "A voice-first 'OS' designed for people locked out of traditional UIs—primarily seniors and those with physical or cognitive limitations. Prototype features daily health check-ins, on-demand task completion (groceries, Uber, appointments), and planned EHR integration for medication adherence and cognitive decline detection. Built with Vapi voice platform, multi-agent LangGraph system, and conducted ~10 user interviews with care facility staff.",
+    description: "Voice-first prototype for seniors accessing services and healthcare",
+    longDescription: "A voice-first prototype for people who struggle with traditional interfaces, especially seniors and users with physical or cognitive limitations. It includes daily health check-ins, task support for groceries, rides, and appointments, and a planned path to EHR integration for medication adherence and cognitive decline detection. Built with Vapi, LangGraph, and interviews with care facility staff.",
     thumbnail: vitaraVoiceOsImage,
     images: [
       vitaraVoiceOsImage

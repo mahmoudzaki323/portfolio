@@ -10,15 +10,15 @@ export function ProjectsSection() {
           <div>
             <p className="eyebrow mb-5 text-accent">02 / Projects</p>
             <h2 className="max-w-[12ch] text-5xl font-semibold leading-[0.96] text-primary md:text-7xl">
-              Systems I build. Problems I solve.
+              Selected projects.
             </h2>
           </div>
           <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
             <p className="max-w-[58ch] text-base leading-8 text-secondary">
-              Selected work across AI automation, full-stack platforms,
-              operational dashboards, developer tooling, and research systems.
-              The common thread is practical software that has to hold up when
-              people actually use it.
+              Product work, internal tools, and research projects across AI,
+              operations, and finance. The through line is straightforward:
+              software that needed to be useful in practice, not just
+              interesting in a deck.
             </p>
             <div className="grid grid-cols-2 gap-6 border-l border-line pl-6 md:w-72">
               <div>
@@ -27,7 +27,7 @@ export function ProjectsSection() {
               </div>
               <div>
                 <p className="mono-tabular text-3xl text-primary">{featuredProjects.length}</p>
-                <p className="mt-2 text-sm text-tertiary">featured builds</p>
+                <p className="mt-2 text-sm text-tertiary">featured projects</p>
               </div>
             </div>
           </div>
@@ -45,7 +45,7 @@ export function ProjectsSection() {
               <div>
                 <p className="eyebrow mb-4 text-accent">Additional work</p>
                 <h3 className="text-3xl font-semibold text-primary md:text-5xl">
-                  Smaller builds, same rigor.
+                  More projects.
                 </h3>
               </div>
             </div>

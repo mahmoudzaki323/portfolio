@@ -21,8 +21,7 @@ export function Footer() {
               Mahmoud Zaki.
             </h2>
             <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary">
-              AI systems, full-stack platforms, automation, and research
-              tooling.
+              Products, internal tools, and research systems.
             </p>
           </div>
 
@@ -72,7 +71,7 @@ export function Footer() {
 
         <div className="mt-16 flex flex-col justify-between gap-4 border-t border-line pt-6 text-sm text-tertiary md:flex-row md:items-center">
           <p className="font-mono">&copy; {new Date().getFullYear()} Mahmoud Zaki</p>
-          <p>React, TypeScript, Tailwind, Three.js</p>
+          <p>Software work, research, and photography.</p>
         </div>
       </div>
     </footer>

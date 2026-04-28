@@ -7,8 +7,6 @@ function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-const stackItems = ["TypeScript", "React", "Node.js", "PostgreSQL", "AI systems"];
-
 export function Hero() {
   return (
     <section className="section-shell section-grid relative min-h-[100dvh] overflow-hidden border-b border-line pt-24 md:pt-28">
@@ -28,8 +26,8 @@ export function Hero() {
           </h1>
 
           <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary md:text-lg">
-            A portfolio of products, research, tools, and experiments across
-            technology, markets, and ideas.
+            Computer science and economics at Duke, building software across
+            AI products, internal tools, and finance.
           </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-[auto_auto]">
@@ -52,26 +50,17 @@ export function Hero() {
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </a>
           </div>
-
-          <div className="mt-9 border-y border-line py-5">
-            <p className="eyebrow mb-4 text-tertiary">Stack</p>
-            <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-secondary">
-              {stackItems.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-          </div>
         </div>
 
         <aside className="relative z-10 grid gap-4">
           <div className="glass-panel p-5 md:p-6">
-            <p className="eyebrow mb-3 text-accent">Range</p>
+            <p className="eyebrow mb-3 text-accent">Things I've built</p>
             <h2 className="text-3xl font-semibold leading-tight text-primary md:text-4xl">
-              Systems, markets, public research, and product work.
+              A few software projects I've worked on.
             </h2>
             <p className="mt-4 max-w-[42ch] text-sm leading-7 text-secondary">
-              Selected projects move between data workflows, automation,
-              finance, AI, and research questions.
+              Some were built for work, some came out of school or research,
+              and some started as side projects.
             </p>
           </div>
 
@@ -82,7 +71,7 @@ export function Hero() {
             </div>
             <div className="bg-background p-5">
               <p className="mono-tabular text-2xl text-primary">4</p>
-              <p className="mt-2 text-xs text-tertiary">featured builds</p>
+              <p className="mt-2 text-xs text-tertiary">featured projects</p>
             </div>
             <div className="bg-background p-5">
               <p className="mono-tabular text-2xl text-primary">Duke</p>
