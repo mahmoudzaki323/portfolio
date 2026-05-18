@@ -9,10 +9,12 @@ interface FeaturedProjectProps {
 
 export function FeaturedProject({ project, index }: FeaturedProjectProps) {
   const isNimbus = project.id === "nimbus";
-  const nimbusUrl = isNimbus ? project.links.demo : undefined;
+  const hasWarmShell = isNimbus || project.id === "caresecurity-qa-agent";
+  const demoUrl = project.links.demo;
+  const hasDemoUrl = Boolean(demoUrl);
   const isContainedImage = project.imageFit === "contain";
   const sectionLabel = isNimbus ? "Featured project" : "Selected project";
-  const previewLabel = isNimbus ? "Live website" : "Project preview";
+  const previewLabel = hasDemoUrl ? "Live website" : "Project preview";
   const preview = (
     <div
       className={cn(
@@ -36,7 +38,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
           )}
         >
           {previewLabel}
-          {isNimbus && (
+          {hasDemoUrl && (
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           )}
         </span>
@@ -72,7 +74,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
     <article
       className={cn(
         "relative grid gap-10 py-16 md:py-20 lg:grid-cols-[0.48fr_0.22fr_0.9fr] lg:items-center",
-        isNimbus && "nimbus-feature-shell isolate my-8 px-5 py-10 md:px-6 lg:px-8"
+        hasWarmShell && "warm-feature-shell isolate my-8 px-5 py-10 md:px-6 lg:px-8"
       )}
     >
       <div className="relative z-10 grid gap-8 md:grid-cols-[4rem_1fr] lg:grid-cols-[4rem_1fr]">
@@ -123,9 +125,9 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            {nimbusUrl && (
+            {demoUrl && (
               <a
-                href={nimbusUrl}
+                href={demoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
@@ -168,13 +170,13 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
         ))}
       </div>
 
-      {nimbusUrl ? (
+      {demoUrl ? (
         <a
-          href={nimbusUrl}
+          href={demoUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="focus-ring group relative z-10 block"
-          aria-label="Open Nimbus website"
+          aria-label={`Open ${project.title} website`}
         >
           {preview}
         </a>

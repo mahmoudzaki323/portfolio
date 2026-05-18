@@ -64,15 +64,16 @@ export const projects: Project[] = [
   },
   {
     id: "caresecurity-qa-agent",
-    title: "Security QA Agent",
-    description: "WhatsApp QA tool for attendance and uniform checks from field photos",
-    longDescription: "A production WhatsApp AI agent that transforms field photos into structured QA scores and dashboards. Security guards or supervisors send photos via WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification + Google Gemini for uniform analysis) to produce auditable attendance and compliance logs. Currently live in 2 pilot sites with planned rollout to 20+ sites.",
+    title: "CareQA",
+    description: "WhatsApp-connected QA workspace for attendance, identity, and uniform verification",
+    longDescription: "CareQA turns field photos into one auditable operations record with image context, identity matching, and uniform verification in the same flow. Security guards and supervisors submit evidence through WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification plus Google Gemini for uniform analysis) to produce structured attendance and compliance logs with clear site context.",
     thumbnail: securityQaAgentImage,
     images: [
       securityQaAgentImage
     ],
     tags: ["Node.js", "Express", "React", "Supabase", "PostgreSQL", "AWS Rekognition", "Google Gemini", "WhatsApp API", "TypeScript"],
     links: {
+      demo: "https://moshref.pro",
       caseStudy: "#case-study-security-qa"
     },
     stats: [

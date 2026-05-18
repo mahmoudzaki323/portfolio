@@ -250,7 +250,7 @@
     background: rgba(73, 184, 170, 0.5);
   }
 
-  .nimbus-feature-shell {
+  .warm-feature-shell {
     overflow: hidden;
     border: 1px solid rgba(249, 115, 22, 0.22);
     background:
@@ -262,7 +262,7 @@
       0 30px 100px rgba(0, 0, 0, 0.28);
   }
 
-  .nimbus-feature-shell::after {
+  .warm-feature-shell::after {
     content: "";
     position: absolute;
     inset: 0;
