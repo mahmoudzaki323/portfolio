@@ -118,10 +118,10 @@ export function Hero() {
       <button
         type="button"
         onClick={() => scrollToSection("projects")}
-        className="focus-ring group absolute bottom-14 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary md:inline-flex lg:bottom-16"
+        className="scroll-cue focus-ring group absolute bottom-20 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary md:inline-flex lg:bottom-24"
       >
         <span>Scroll to explore</span>
-        <ArrowDown className="h-4 w-4 text-accent transition-transform duration-300 group-hover:translate-y-1" aria-hidden="true" />
+        <ArrowDown className="scroll-cue-icon h-4 w-4 text-accent transition-transform duration-300 group-hover:translate-y-1" aria-hidden="true" />
       </button>
     </section>
   );
