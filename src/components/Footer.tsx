@@ -17,8 +17,8 @@ export function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
           <div>
             <p className="eyebrow mb-5 text-accent">Contact</p>
-            <h2 className="max-w-[11ch] text-5xl font-semibold leading-[0.96] text-primary md:text-7xl">
-              Mahmoud Zaki.
+            <h2 className="max-w-[11ch] text-5xl font-medium leading-[0.9] text-primary md:text-7xl">
+              Mahmoud Zaki
             </h2>
             <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary">
               Products, internal tools, and research systems.
@@ -31,7 +31,7 @@ export function Footer() {
                 href="https://www.linkedin.com/in/mahmoudzaki-"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-between bg-background p-5 transition-colors hover:bg-background-soft"
+                className="group flex items-center justify-between bg-background/90 p-5 transition-colors hover:bg-background-soft"
               >
                 <span className="inline-flex items-center gap-3">
                   <Linkedin className="h-5 w-5 text-accent" />
@@ -43,7 +43,7 @@ export function Footer() {
                 href="https://github.com/mahmoudzaki323"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex items-center justify-between bg-background p-5 transition-colors hover:bg-background-soft"
+                className="group flex items-center justify-between bg-background/90 p-5 transition-colors hover:bg-background-soft"
               >
                 <span className="inline-flex items-center gap-3">
                   <Github className="h-5 w-5 text-accent" />

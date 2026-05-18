@@ -13,16 +13,17 @@ export function Hero() {
       <div className="mx-auto grid min-h-[calc(100dvh-6rem)] max-w-site grid-cols-1 gap-12 px-5 pb-14 md:px-8 lg:grid-cols-[0.98fr_0.72fr] lg:items-center">
         <div className="relative z-10 flex flex-col justify-center">
           <div className="mb-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-tertiary">
-            <span className="flex items-center gap-2 font-mono text-xs uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em]">
+              <span className="h-px w-7 bg-accent" />
               Duke University
             </span>
             <span className="hidden h-px w-8 bg-line sm:block" />
-            <span className="font-mono text-xs uppercase">Selected work</span>
+            <span className="font-mono text-xs uppercase tracking-[0.12em]">Selected work</span>
           </div>
 
-          <h1 className="max-w-[13ch] text-5xl font-semibold leading-[0.98] text-primary sm:text-6xl md:text-7xl xl:text-8xl">
-            Mahmoud Zaki.
+          <h1 className="max-w-[8.5ch] text-[clamp(5rem,9.8vw,9.4rem)] font-normal leading-[0.82] tracking-[-0.055em] text-primary">
+            <span className="block">Mahmoud</span>
+            <span className="hero-last-name block">Zaki</span>
           </h1>
 
           <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary md:text-lg">
@@ -55,7 +56,7 @@ export function Hero() {
         <aside className="relative z-10 grid gap-4">
           <div className="glass-panel p-5 md:p-6">
             <p className="eyebrow mb-3 text-accent">Things I've built</p>
-            <h2 className="text-3xl font-semibold leading-tight text-primary md:text-4xl">
+            <h2 className="text-3xl font-medium leading-tight text-primary md:text-4xl">
               A few software projects I've worked on.
             </h2>
             <p className="mt-4 max-w-[42ch] text-sm leading-7 text-secondary">
@@ -65,22 +66,22 @@ export function Hero() {
           </div>
 
           <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
-            <div className="bg-background p-5">
+            <div className="bg-background/90 p-5">
               <p className="mono-tabular text-2xl text-primary">7</p>
               <p className="mt-2 text-xs text-tertiary">selected projects</p>
             </div>
-            <div className="bg-background p-5">
+            <div className="bg-background/90 p-5">
               <p className="mono-tabular text-2xl text-primary">4</p>
               <p className="mt-2 text-xs text-tertiary">featured projects</p>
             </div>
-            <div className="bg-background p-5">
+            <div className="bg-background/90 p-5">
               <p className="mono-tabular text-2xl text-primary">Duke</p>
               <p className="mt-2 text-xs text-tertiary">university</p>
             </div>
           </div>
 
           <div className="glass-panel-soft p-5">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-5">
               <div className="flex items-center gap-3">
                 <GraduationCap className="h-5 w-5 text-accent" aria-hidden="true" />
                 <div>
@@ -113,6 +114,15 @@ export function Hero() {
           </div>
         </aside>
       </div>
+
+      <button
+        type="button"
+        onClick={() => scrollToSection("projects")}
+        className="focus-ring group absolute bottom-14 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary md:inline-flex lg:bottom-16"
+      >
+        <span>Scroll to explore</span>
+        <ArrowDown className="h-4 w-4 text-accent transition-transform duration-300 group-hover:translate-y-1" aria-hidden="true" />
+      </button>
     </section>
   );
 }

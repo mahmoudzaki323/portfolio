@@ -6,10 +6,10 @@ export function ProjectsSection() {
   return (
     <section id="projects" className="section-shell section-grid border-b border-line py-24 md:py-32">
       <div className="mx-auto max-w-site px-5 md:px-8">
-        <div className="grid gap-10 border-b border-line pb-16 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+        <div className="grid gap-10 border-b border-line pb-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
           <div>
             <p className="eyebrow mb-5 text-accent">02 / Projects</p>
-            <h2 className="max-w-[12ch] text-5xl font-semibold leading-[0.96] text-primary md:text-7xl">
+            <h2 className="max-w-[13ch] text-5xl font-medium leading-[0.9] text-primary md:text-7xl">
               Selected projects.
             </h2>
           </div>
@@ -44,7 +44,7 @@ export function ProjectsSection() {
             <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
               <div>
                 <p className="eyebrow mb-4 text-accent">Additional work</p>
-                <h3 className="text-3xl font-semibold text-primary md:text-5xl">
+                <h3 className="text-3xl font-medium text-primary md:text-5xl">
                   More projects.
                 </h3>
               </div>

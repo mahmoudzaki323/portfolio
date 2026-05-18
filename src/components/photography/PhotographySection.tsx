@@ -32,6 +32,8 @@ export function PhotographySection() {
   const [earthLoaded, setEarthLoaded] = useState(false);
   const [currentTripIndex, setCurrentTripIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isGlobeHintDismissed, setIsGlobeHintDismissed] = useState(false);
+  const globeHintDismissedRef = useRef(false);
 
   const focusedTripIdRef = useRef(focusedTripId);
   const isGalleryOpenRef = useRef(isGalleryOpen);
@@ -84,6 +86,11 @@ export function PhotographySection() {
       onUpdate: (self) => {
         const progress = self.progress;
         updateScrollState(progress, segmentCount);
+
+        if (!globeHintDismissedRef.current && progress > 0.01) {
+          globeHintDismissedRef.current = true;
+          setIsGlobeHintDismissed(true);
+        }
 
         const exactSegment = progress * segmentCount;
         const segmentIndex = Math.floor(exactSegment);
@@ -192,6 +199,7 @@ export function PhotographySection() {
   useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
   const sectionHeight = hasTrips ? `${120 + trips.length * 120}vh` : "100vh";
+  const showGlobeHint = !isGlobeHintDismissed && !isGalleryOpen;
 
   return (
     <section ref={sectionRef} id="photography" className="relative bg-background" style={{ height: sectionHeight }}>
@@ -208,8 +216,34 @@ export function PhotographySection() {
           />
         </div>
 
-        <div className="absolute inset-0 z-10 bg-[linear-gradient(90deg,var(--color-background)_0%,rgba(8,10,9,0.9)_28%,rgba(8,10,9,0.18)_70%,rgba(8,10,9,0.68)_100%)] pointer-events-none" />
+        <div className="map-scrim pointer-events-none absolute inset-0 z-10" />
         <div className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+
+        <div
+          className="pointer-events-none absolute inset-x-5 top-24 z-30 flex justify-center transition duration-500 md:top-28"
+          style={{
+            opacity: showGlobeHint ? 1 : 0,
+            transform: showGlobeHint ? "translate3d(0, 0, 0)" : "translate3d(0, -0.75rem, 0)",
+          }}
+          aria-hidden={!showGlobeHint}
+        >
+          <div className="glass-panel pointer-events-auto max-w-sm p-4 text-center md:max-w-md md:p-5">
+            <p className="eyebrow text-accent">Travel archive</p>
+            <p className="mt-3 text-sm leading-6 text-primary md:text-base">
+              Keep scrolling to travel around the world through my lens.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                globeHintDismissedRef.current = true;
+                setIsGlobeHintDismissed(true);
+              }}
+              className="focus-ring mt-4 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
 
         <div className="relative z-20 mx-auto flex h-full max-w-site px-5 py-14 md:px-8 md:py-16">
           <aside className="flex h-full w-full max-w-[31rem] flex-col border-r border-line pr-0 md:pr-8">

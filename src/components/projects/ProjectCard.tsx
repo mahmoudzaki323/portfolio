@@ -8,8 +8,8 @@ interface ProjectCardProps {
 
 export const ProjectCard = memo(function ProjectCard({ project, index }: ProjectCardProps) {
   return (
-    <article className="group bg-background p-5 transition-colors duration-300 hover:bg-background-soft md:p-6">
-      <div className="mb-6 flex items-center justify-between font-mono text-xs uppercase text-tertiary">
+    <article className="group bg-background/90 p-5 transition-colors duration-300 hover:bg-background-soft md:p-6">
+      <div className="mb-6 flex items-center justify-between font-mono text-xs uppercase tracking-[0.12em] text-tertiary">
         <span>{String(index + 1).padStart(2, "0")}</span>
         <span>{project.year}</span>
       </div>
@@ -18,7 +18,7 @@ export const ProjectCard = memo(function ProjectCard({ project, index }: Project
         <img
           src={project.thumbnail}
           alt={`${project.title} preview`}
-          className="h-full w-full object-cover opacity-80 saturate-[0.82] transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
+          className="media-muted h-full w-full object-cover opacity-85 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-100"
           loading="lazy"
           decoding="async"
         />
@@ -33,7 +33,7 @@ export const ProjectCard = memo(function ProjectCard({ project, index }: Project
         </div>
       </div>
 
-      <h4 className="text-2xl font-semibold text-primary">{project.title}</h4>
+      <h4 className="text-2xl font-medium leading-tight text-primary">{project.title}</h4>
       <p className="mt-2 text-sm text-accent/85">{project.description}</p>
       <p className="mt-5 line-clamp-4 text-sm leading-7 text-secondary">
         {project.longDescription}

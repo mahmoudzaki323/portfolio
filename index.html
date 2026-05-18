@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Mahmoud Zaki's portfolio of production software, AI systems, automation projects, and full-stack platforms." />
-    <meta name="theme-color" content="#080a09" />
+    <meta name="theme-color" content="#0b0b09" />
     <meta property="og:title" content="Mahmoud Zaki" />
     <meta property="og:description" content="Selected software projects, AI systems, automation work, and full-stack platforms." />
     
@@ -13,18 +13,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://images.unsplash.com" />
     
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Instrument+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script>
+      (() => {
+        const hour = new Date().getHours();
+        const autoTheme = hour >= 6 && hour < 19 ? "light" : "dark";
+        const storedTheme = window.sessionStorage.getItem("portfolio-theme");
+        const theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : autoTheme;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.dataset.themeSource = storedTheme ? "manual" : "auto";
+      })();
+    </script>
     
     <title>Mahmoud Zaki</title>
     
     <style>
       html {
-        background-color: #080a09;
+        background-color: #0b0b09;
       }
       body {
         margin: 0;
-        background-color: #080a09;
-        color: #f2efe7;
+        background-color: #0b0b09;
+        color: #f4ead8;
         font-family: "Instrument Sans", system-ui, -apple-system, sans-serif;
       }
       #root {
