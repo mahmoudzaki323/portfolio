@@ -78,7 +78,7 @@ export const projects: Project[] = [
     stats: [
       { label: "Pilot Sites", value: "2" },
       { label: "Planned Rollout", value: "20+" },
-      { label: "AI Models", value: "2" }
+      { label: "Guards Supervised", value: "150+" }
     ],
     color: "#3b82f6",
     year: "2025",
