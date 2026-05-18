@@ -4,7 +4,6 @@ import digitalCairoResearchImage from "../assets/projects/digital-cairo-research
 import investorPortalImage from "../assets/projects/investor-portal.png";
 import scholarAiImage from "../assets/projects/scholar-ai.png";
 import securityQaAgentImage from "../assets/projects/security-qa-agent.png";
-import securityWorkforcePlatformImage from "../assets/projects/security-workforce-platform.png";
 import vitaraVoiceOsImage from "../assets/projects/vitara-voice-os.png";
 
 export interface Project {
@@ -66,7 +65,7 @@ export const projects: Project[] = [
     id: "caresecurity-qa-agent",
     title: "CareQA",
     description: "WhatsApp-connected QA workspace for attendance, identity, and uniform verification",
-    longDescription: "CareQA turns field photos into one auditable operations record with image context, identity matching, and uniform verification in the same flow. Security guards and supervisors submit evidence through WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification plus Google Gemini for uniform analysis) to produce structured attendance and compliance logs with clear site context.",
+    longDescription: "CareQA turns field photos into one auditable operations record with image context, identity matching, and uniform verification in the same flow. Security guards and supervisors submit evidence through WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification plus Google Gemini for uniform analysis) to produce structured attendance and compliance logs for live operations now.",
     thumbnail: securityQaAgentImage,
     images: [
       securityQaAgentImage
@@ -82,29 +81,7 @@ export const projects: Project[] = [
       { label: "AI Models", value: "2" }
     ],
     color: "#3b82f6",
-    year: "2024",
-    featured: true
-  },
-  {
-    id: "caresecurity-workforce",
-    title: "Security Workforce Platform",
-    description: "Android-first workforce management platform for 5,000+ security personnel",
-    longDescription: "An enterprise workforce management platform designed to scale to 5,000+ users. Security supervisors use an Android app (React Native) to capture evidence via photos, GPS, NFC, and QR check-ins. Managers access real-time dashboards to track rounds, view compliance reports, and align operations with contract clauses. Features immutable audit trails and contract-aware workflows to prevent revenue deductions.",
-    thumbnail: securityWorkforcePlatformImage,
-    images: [
-      securityWorkforcePlatformImage
-    ],
-    tags: ["React Native", "Expo", "Node.js", "PostgreSQL", "Supabase", "Turborepo", "TypeScript", "i18n (AR/EN)"],
-    links: {
-      caseStudy: "#case-study-security-workforce"
-    },
-    stats: [
-      { label: "Target Users", value: "5,000+" },
-      { label: "Platforms", value: "2" },
-      { label: "Languages", value: "2" }
-    ],
-    color: "#10b981",
-    year: "2024",
+    year: "2025",
     featured: true
   },
   {
