@@ -5,7 +5,6 @@ import investorPortalImage from "../assets/projects/investor-portal.png";
 import scholarAiImage from "../assets/projects/scholar-ai.png";
 import securityQaAgentImage from "../assets/projects/security-qa-agent.png";
 import trueMarginHeroImage from "../assets/projects/true-margin-hero-demo.png";
-import vitaraVoiceOsImage from "../assets/projects/vitara-voice-os.png";
 
 export interface Project {
   id: string;
@@ -23,6 +22,7 @@ export interface Project {
     github?: string;
     productHunt?: string;
     caseStudy?: string;
+    research?: string;
   };
   stats: {
     label: string;
@@ -116,9 +116,7 @@ export const projects: Project[] = [
       investorPortalImage
     ],
     tags: ["React", "TypeScript", "Node.js", "Express", "TypeORM", "PostgreSQL", "JWT", "Tailwind CSS"],
-    links: {
-      caseStudy: "#case-study-investor-portal"
-    },
+    links: {},
     stats: [
       { label: "User Roles", value: "3" },
       { label: "Stack", value: "Full" },
@@ -139,37 +137,13 @@ export const projects: Project[] = [
       scholarAiImage
     ],
     tags: ["Python", "Streamlit", "Supabase", "PostgreSQL", "pgvector", "OpenAI", "RAG"],
-    links: {
-      caseStudy: "#case-study-scholar"
-    },
+    links: {},
     stats: [
       { label: "Retrieval", value: "Hybrid" },
       { label: "Focus", value: "Academic" },
       { label: "Model", value: "GPT-4o" }
     ],
     color: "#f59e0b",
-    year: "2024",
-    featured: false
-  },
-  {
-    id: "vitara-voice-os",
-    title: "Vitara Voice OS",
-    description: "Voice-first prototype for seniors accessing services and healthcare",
-    longDescription: "A voice-first prototype for people who struggle with traditional interfaces, especially seniors and users with physical or cognitive limitations. It includes daily health check-ins, task support for groceries, rides, and appointments, and a planned path to EHR integration for medication adherence and cognitive decline detection. Built with Vapi, LangGraph, and interviews with care facility staff.",
-    thumbnail: vitaraVoiceOsImage,
-    images: [
-      vitaraVoiceOsImage
-    ],
-    tags: ["Node.js", "Python", "LangGraph", "Vapi", "Pinecone", "PostgreSQL", "Redis", "FHIR"],
-    links: {
-      caseStudy: "#case-study-vitara"
-    },
-    stats: [
-      { label: "Interviews", value: "10+" },
-      { label: "Target", value: "Seniors" },
-      { label: "Status", value: "Demo" }
-    ],
-    color: "#ec4899",
     year: "2024",
     featured: false
   },
@@ -184,7 +158,7 @@ export const projects: Project[] = [
     ],
     tags: ["Research", "Digital Humanities", "Data Analysis"],
     links: {
-      caseStudy: "#case-study-digital-cairo"
+      research: "https://sites.duke.edu/cairemoderne/digital-cairo-xml-tei/"
     },
     stats: [
       { label: "Institution", value: "Duke" },

@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { ArrowUpRight } from "lucide-react";
 import type { Project } from "../../data/projects";
 
 interface ProjectCardProps {
@@ -6,7 +7,36 @@ interface ProjectCardProps {
   index: number;
 }
 
+function getProjectLink(project: Project) {
+  const href =
+    project.links.research ??
+    project.links.demo ??
+    project.links.productHunt ??
+    project.links.caseStudy ??
+    project.links.github;
+
+  if (!href) return null;
+
+  const label = project.links.research
+    ? "View research"
+    : project.links.demo
+      ? "View website"
+      : project.links.productHunt
+        ? "View Product Hunt"
+        : project.links.github
+          ? "View code"
+          : "View case study";
+
+  return {
+    href,
+    label,
+    isExternal: href.startsWith("http")
+  };
+}
+
 export const ProjectCard = memo(function ProjectCard({ project, index }: ProjectCardProps) {
+  const projectLink = getProjectLink(project);
+
   return (
     <article className="group bg-background/90 p-5 transition-colors duration-300 hover:bg-background-soft md:p-6">
       <div className="mb-6 flex items-center justify-between font-mono text-xs uppercase tracking-[0.12em] text-tertiary">
@@ -35,16 +65,30 @@ export const ProjectCard = memo(function ProjectCard({ project, index }: Project
 
       <h4 className="text-2xl font-medium leading-tight text-primary">{project.title}</h4>
       <p className="mt-2 text-sm text-accent/85">{project.description}</p>
-      <p className="mt-5 line-clamp-4 text-sm leading-7 text-secondary">
+      <p className="mt-5 text-sm leading-7 text-secondary">
         {project.longDescription}
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-x-3 gap-y-2 text-xs text-tertiary">
-        {project.tags.slice(0, 4).map((tag) => (
-          <span key={tag} className="font-mono uppercase">
-            {tag}
-          </span>
-        ))}
+      <div className="mt-6 flex flex-col gap-5">
+        <div className="flex flex-wrap gap-x-3 gap-y-2 text-xs text-tertiary">
+          {project.tags.slice(0, 4).map((tag) => (
+            <span key={tag} className="font-mono uppercase">
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {projectLink && (
+          <a
+            href={projectLink.href}
+            target={projectLink.isExternal ? "_blank" : undefined}
+            rel={projectLink.isExternal ? "noopener noreferrer" : undefined}
+            className="focus-ring inline-flex w-fit items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-accent transition-colors duration-200 hover:text-primary"
+          >
+            {projectLink.label}
+            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
+        )}
       </div>
     </article>
   );
