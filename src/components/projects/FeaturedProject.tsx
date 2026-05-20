@@ -7,14 +7,30 @@ interface FeaturedProjectProps {
   index: number;
 }
 
+function LiveBadge() {
+  return (
+    <span className="live-project-badge absolute right-5 top-5 z-20 inline-flex items-center gap-2 px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.12em] md:right-6 md:top-6">
+      <span aria-hidden="true" className="live-project-dot-wrap relative flex h-2.5 w-2.5">
+        <span className="live-project-dot-ping absolute inline-flex h-full w-full animate-ping rounded-full" />
+        <span className="live-project-dot relative inline-flex h-2.5 w-2.5 rounded-full" />
+      </span>
+      Live
+    </span>
+  );
+}
+
 export function FeaturedProject({ project, index }: FeaturedProjectProps) {
   const isNimbus = project.id === "nimbus";
-  const hasWarmShell = isNimbus || project.id === "caresecurity-qa-agent";
+  const isTrueMargin = project.id === "true-margin";
+  const hasWarmShell =
+    isNimbus ||
+    project.id === "caresecurity-qa-agent" ||
+    isTrueMargin;
   const demoUrl = project.links.demo;
   const hasDemoUrl = Boolean(demoUrl);
   const isContainedImage = project.imageFit === "contain";
-  const sectionLabel = isNimbus ? "Featured project" : "Selected project";
-  const previewLabel = hasDemoUrl ? "Live website" : "Project preview";
+  const sectionLabel = "Featured project";
+  const previewLabel = hasDemoUrl ? "Website preview" : "Project preview";
   const preview = (
     <div
       className="glass-panel overflow-hidden"
@@ -60,6 +76,8 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
         hasWarmShell && "warm-feature-shell isolate my-8 px-5 py-10 md:px-6 lg:px-8"
       )}
     >
+      {hasDemoUrl && <LiveBadge />}
+
       <div className="relative z-10 grid gap-8 md:grid-cols-[4rem_1fr] lg:grid-cols-[4rem_1fr]">
         <div className="hidden border-r border-line pr-5 md:block">
           <p className="mono-tabular text-4xl text-accent/75">
@@ -126,7 +144,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
             )}
           >
             <p className="mono-tabular text-2xl text-accent md:text-3xl">
-              {stat.value}
+              <span>{stat.value}</span>
             </p>
             <p className="mt-2 text-xs leading-5 text-tertiary">{stat.label}</p>
           </div>

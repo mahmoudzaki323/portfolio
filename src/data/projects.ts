@@ -4,6 +4,7 @@ import digitalCairoResearchImage from "../assets/projects/digital-cairo-research
 import investorPortalImage from "../assets/projects/investor-portal.png";
 import scholarAiImage from "../assets/projects/scholar-ai.png";
 import securityQaAgentImage from "../assets/projects/security-qa-agent.png";
+import trueMarginHeroImage from "../assets/projects/true-margin-hero-demo.png";
 import vitaraVoiceOsImage from "../assets/projects/vitara-voice-os.png";
 
 export interface Project {
@@ -35,33 +36,6 @@ export interface Project {
 export const projects: Project[] = [
   // === FEATURED PROJECTS ===
   {
-    id: "nimbus",
-    title: "Nimbus",
-    description: "macOS app for turning workflow history into AI context",
-    longDescription: "Nimbus turns day-to-day desktop activity into structured context AI agents can use later. It captures workflows locally, parses what happened, syncs that history to the cloud, and exposes it through MCP so real work becomes reusable memory instead of scattered tabs and transcripts.",
-    thumbnail: nimbusFrame13,
-    images: [
-      nimbusFrame13,
-      nimbusDashboard
-    ],
-    imageFit: "contain",
-    hideTechStack: true,
-    hideTags: true,
-    tags: [],
-    links: {
-      demo: "https://nimbusai.cloud",
-      productHunt: "https://www.producthunt.com/products/nimbus-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nimbus-1c165f5e-63f2-4444-9d1b-4fcf70998a35"
-    },
-    stats: [
-      { label: "AI Stages", value: "2" },
-      { label: "MCP Tools", value: "7" },
-      { label: "Platform", value: "macOS" }
-    ],
-    color: "#f97316",
-    year: "2026",
-    featured: true
-  },
-  {
     id: "caresecurity-qa-agent",
     title: "CareQA",
     description: "WhatsApp-connected QA workspace for attendance, identity, and uniform verification",
@@ -85,6 +59,54 @@ export const projects: Project[] = [
     featured: true
   },
   {
+    id: "true-margin",
+    title: "True Margin",
+    description: "Live pre-close margin app for restaurant operators",
+    longDescription: "True Margin is a live app for small and multi-location restaurants that predicts margin leaks before they hit the books. It reads current-week signals from invoices, POS exports, inventory, recipes, labor, bank feeds, and manager context, then explains likely loss drivers, asks for missing context, recommends owner-approved actions, and produces the weekly owner memo, manager follow-up list, and bookkeeper packet.",
+    thumbnail: trueMarginHeroImage,
+    images: [
+      trueMarginHeroImage
+    ],
+    tags: ["Next.js", "TypeScript", "Supabase", "Clerk", "Anthropic Claude", "Resend", "Vercel", "Tailwind CSS"],
+    links: {
+      demo: "https://www.truemargin.us"
+    },
+    stats: [
+      { label: "Custom forecasting", value: "Daily" },
+      { label: "Operating signals", value: "9 inputs" },
+      { label: "Owner workflow", value: "Action cards" }
+    ],
+    color: "#065f46",
+    year: "2026",
+    featured: true
+  },
+  {
+    id: "nimbus",
+    title: "Nimbus",
+    description: "macOS app for turning workflow history into AI context",
+    longDescription: "Nimbus turns day-to-day desktop activity into structured context AI agents can use later. It captures workflows locally, parses what happened, syncs that history to the cloud, and exposes it through MCP so real work becomes reusable memory instead of scattered tabs and transcripts.",
+    thumbnail: nimbusFrame13,
+    images: [
+      nimbusFrame13,
+      nimbusDashboard
+    ],
+    hideTechStack: true,
+    hideTags: true,
+    tags: [],
+    links: {
+      demo: "https://nimbusai.cloud",
+      productHunt: "https://www.producthunt.com/products/nimbus-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nimbus-1c165f5e-63f2-4444-9d1b-4fcf70998a35"
+    },
+    stats: [
+      { label: "AI Stages", value: "2" },
+      { label: "MCP Tools", value: "7" },
+      { label: "Platform", value: "macOS" }
+    ],
+    color: "#f97316",
+    year: "2026",
+    featured: true
+  },
+  {
     id: "disruptech-portal",
     title: "Investor Portal",
     description: "Investor portal for portfolio data, documents, and role-based access",
@@ -104,7 +126,7 @@ export const projects: Project[] = [
     ],
     color: "#8b5cf6",
     year: "2024",
-    featured: true
+    featured: false
   },
   // === OTHER PROJECTS ===
   {

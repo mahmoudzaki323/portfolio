@@ -348,6 +348,46 @@
     background: color-mix(in srgb, var(--color-accent) 52%, transparent);
   }
 
+  .live-project-badge {
+    border: 1px solid var(--color-line);
+    background: var(--panel-soft-background);
+    color: var(--color-primary);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 10px 24px color-mix(in srgb, var(--color-background) 14%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .live-project-dot-ping {
+    background: #10b981;
+    opacity: 0.34;
+  }
+
+  .live-project-dot {
+    background: #10b981;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, #10b981 36%, var(--color-background)),
+      0 0 8px rgba(16, 185, 129, 0.48);
+  }
+
+  html[data-theme="light"] .live-project-badge {
+    border-color: rgba(28, 29, 27, 0.22);
+    background: rgba(255, 252, 244, 0.64);
+    color: var(--color-primary);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.78),
+      0 10px 24px rgba(75, 70, 50, 0.1);
+  }
+
+  html[data-theme="dark"] .live-project-badge {
+    border-color: rgba(244, 234, 216, 0.18);
+    background: rgba(11, 11, 9, 0.56);
+    color: var(--color-primary);
+    box-shadow:
+      0 10px 24px rgba(0, 0, 0, 0.22),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
   .warm-feature-shell {
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--color-accent) 28%, transparent);

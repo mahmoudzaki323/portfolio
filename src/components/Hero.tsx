@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUpRight, Github, GraduationCap, Linkedin } from "lucide-react";
+import { featuredProjects, projects } from "../data/projects";
 
 const linkedinUrl = "https://www.linkedin.com/in/mahmoudzaki-";
 const githubUrl = "https://github.com/mahmoudzaki323";
@@ -67,11 +68,11 @@ export function Hero() {
 
           <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
             <div className="bg-background/90 p-5">
-              <p className="mono-tabular text-2xl text-primary">7</p>
+              <p className="mono-tabular text-2xl text-primary">{projects.length}</p>
               <p className="mt-2 text-xs text-tertiary">selected projects</p>
             </div>
             <div className="bg-background/90 p-5">
-              <p className="mono-tabular text-2xl text-primary">4</p>
+              <p className="mono-tabular text-2xl text-primary">{featuredProjects.length}</p>
               <p className="mt-2 text-xs text-tertiary">featured projects</p>
             </div>
             <div className="bg-background/90 p-5">
