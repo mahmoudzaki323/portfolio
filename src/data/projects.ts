@@ -83,8 +83,8 @@ export const projects: Project[] = [
   {
     id: "nimbus",
     title: "Nimbus",
-    description: "macOS app for turning workflow history into AI context",
-    longDescription: "Nimbus turns day-to-day desktop activity into structured context AI agents can use later. It captures workflows locally, parses what happened, syncs that history to the cloud, and exposes it through MCP so real work becomes reusable memory instead of scattered tabs and transcripts.",
+    description: "Nimbus is a desktop app that observes you as you work and turns it into structured knowledge that your AI agents can query so that they're able to navigate internal platforms and do your work the way you do it. Works with any MCP-compatible agent. It's the difference between having a super competent assistant on their first day at work (your agent without nimbus), and having an assistant that's worked with you for years and knows how you do things (with nimbus).",
+    longDescription: "Nimbus is a desktop app that observes you as you work and turns it into structured knowledge that your AI agents can query so that they're able to navigate internal platforms and do your work the way you do it. Works with any MCP-compatible agent. It's the difference between having a super competent assistant on their first day at work (your agent without nimbus), and having an assistant that's worked with you for years and knows how you do things (with nimbus).",
     thumbnail: nimbusFrame13,
     images: [
       nimbusFrame13,
