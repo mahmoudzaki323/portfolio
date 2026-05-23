@@ -1,6 +1,7 @@
 import { useState, useCallback, Suspense, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Stars, useProgress } from "@react-three/drei";
+import * as THREE from "three";
 import { Earth } from "./Earth";
 import { Atmosphere } from "./Atmosphere";
 import { LocationMarkers } from "./LocationMarkers";
@@ -16,6 +17,9 @@ interface EarthSceneProps {
   visibleLabelId?: string | null;
   onTripSelect?: (tripId: string) => void;
   onLoad?: () => void;
+  isManualControlActive?: boolean;
+  onManualControlStart?: () => void;
+  onManualControlEnd?: () => void;
 }
 
 function Loader({ onLoad }: { onLoad?: () => void }) {
@@ -31,12 +35,92 @@ function Loader({ onLoad }: { onLoad?: () => void }) {
   return null;
 }
 
+function ManualGlobeControls({
+  onManualControlStart,
+  onManualControlEnd,
+}: {
+  onManualControlStart?: () => void;
+  onManualControlEnd?: () => void;
+}) {
+  const { camera, gl } = useThree();
+
+  useEffect(() => {
+    const element = gl.domElement;
+    const target = new THREE.Vector3(0, 0, 0);
+    const spherical = new THREE.Spherical();
+    const start = {
+      x: 0,
+      y: 0,
+      theta: 0,
+      phi: 0,
+      radius: 0,
+      dragging: false,
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return;
+
+      onManualControlStart?.();
+      element.setPointerCapture(event.pointerId);
+      spherical.setFromVector3(camera.position.clone().sub(target));
+
+      start.x = event.clientX;
+      start.y = event.clientY;
+      start.theta = spherical.theta;
+      start.phi = spherical.phi;
+      start.radius = spherical.radius;
+      start.dragging = true;
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!start.dragging) return;
+
+      const nextTheta = start.theta - (event.clientX - start.x) * 0.006;
+      const nextPhi = THREE.MathUtils.clamp(
+        start.phi - (event.clientY - start.y) * 0.0045,
+        0.28,
+        Math.PI - 0.28
+      );
+
+      spherical.set(start.radius, nextPhi, nextTheta);
+      camera.position.copy(new THREE.Vector3().setFromSpherical(spherical).add(target));
+      camera.lookAt(target);
+    };
+
+    const handlePointerEnd = (event: PointerEvent) => {
+      if (!start.dragging) return;
+      start.dragging = false;
+      if (element.hasPointerCapture(event.pointerId)) {
+        element.releasePointerCapture(event.pointerId);
+      }
+      onManualControlEnd?.();
+    };
+
+    element.addEventListener("pointerdown", handlePointerDown);
+    element.addEventListener("pointermove", handlePointerMove);
+    element.addEventListener("pointerup", handlePointerEnd);
+    element.addEventListener("pointercancel", handlePointerEnd);
+
+    return () => {
+      element.removeEventListener("pointerdown", handlePointerDown);
+      element.removeEventListener("pointermove", handlePointerMove);
+      element.removeEventListener("pointerup", handlePointerEnd);
+      element.removeEventListener("pointercancel", handlePointerEnd);
+    };
+  }, [camera, gl, onManualControlEnd, onManualControlStart]);
+
+  return null;
+}
+
 function Scene({
   activeTrip,
   isOverview = true,
   currentTripIndex = 0,
   onTripSelect,
   onLoad,
+  isManualControlActive = false,
+  onManualControlStart,
+  onManualControlEnd,
 }: EarthSceneProps) {
   const RADIUS = 2;
 
@@ -90,6 +174,12 @@ function Scene({
         targetTrip={isOverview ? null : activeTrip}
         trips={trips}
         radius={RADIUS}
+        isManualControlActive={isManualControlActive}
+      />
+
+      <ManualGlobeControls
+        onManualControlStart={onManualControlStart}
+        onManualControlEnd={onManualControlEnd}
       />
     </>
   );
@@ -101,6 +191,9 @@ export function EarthScene({
   currentTripIndex,
   onTripSelect,
   onLoad,
+  isManualControlActive,
+  onManualControlStart,
+  onManualControlEnd,
 }: EarthSceneProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
@@ -112,7 +205,7 @@ export function EarthScene({
   }, [onLoad]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="globe-interaction-layer relative h-full w-full">
       <Canvas
         camera={{
           position: [0, 0.8, 9],
@@ -136,6 +229,9 @@ export function EarthScene({
             currentTripIndex={currentTripIndex}
             onTripSelect={onTripSelect}
             onLoad={handleLoad}
+            isManualControlActive={isManualControlActive}
+            onManualControlStart={onManualControlStart}
+            onManualControlEnd={onManualControlEnd}
           />
         </Suspense>
       </Canvas>

@@ -70,11 +70,10 @@ function DeferredPhotographySection() {
         <div className="max-w-md space-y-5">
           <p className="eyebrow text-accent">Photography</p>
           <h2 className="text-4xl font-display font-semibold text-primary md:text-6xl">
-            Travel and photo archives.
+            Photography.
           </h2>
           <p className="max-w-[48ch] text-sm leading-7 text-secondary">
-            The interactive map and albums load here as you scroll down the
-            page.
+            Map and albums.
           </p>
         </div>
       </div>

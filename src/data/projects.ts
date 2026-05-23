@@ -39,7 +39,7 @@ export const projects: Project[] = [
     id: "caresecurity-qa-agent",
     title: "CareQA",
     description: "WhatsApp-connected QA workspace for attendance, identity, and uniform verification",
-    longDescription: "CareQA turns field photos into one auditable operations record with image context, identity matching, and uniform verification in the same flow. Security guards and supervisors submit evidence through WhatsApp, and the system uses a dual-AI pipeline (AWS Rekognition for face identification plus Google Gemini for uniform analysis) to produce structured attendance and compliance logs for live operations now.",
+    longDescription: "CareQA is a WhatsApp-connected QA workspace for security operations. Guards and supervisors submit field photos; the app matches identities, checks uniforms, and logs attendance and compliance records for review.",
     thumbnail: securityQaAgentImage,
     images: [
       securityQaAgentImage
@@ -62,7 +62,7 @@ export const projects: Project[] = [
     id: "true-margin",
     title: "True Margin",
     description: "Live pre-close margin app for restaurant operators",
-    longDescription: "True Margin is a live app for small and multi-location restaurants that predicts margin leaks before they hit the books. It reads current-week signals from invoices, POS exports, inventory, recipes, labor, bank feeds, and manager context, then explains likely loss drivers, asks for missing context, recommends owner-approved actions, and produces the weekly owner memo, manager follow-up list, and bookkeeper packet.",
+    longDescription: "True Margin helps restaurant operators find margin issues before close. It combines invoices, POS, inventory, recipes, labor, bank feeds, and manager notes into forecasts, action items, and weekly owner and bookkeeper summaries.",
     thumbnail: trueMarginHeroImage,
     images: [
       trueMarginHeroImage
@@ -84,7 +84,7 @@ export const projects: Project[] = [
     id: "nimbus",
     title: "Nimbus",
     description: "macOS app for turning workflow history into AI context",
-    longDescription: "Nimbus is a desktop app that observes you as you work and turns it into structured knowledge that your AI agents can query so that they're able to navigate internal platforms and do your work the way you do it. Works with any MCP-compatible agent. It's the difference between having a super competent assistant on their first day at work (your agent without nimbus), and having an assistant that's worked with you for years and knows how you do things (with nimbus).",
+    longDescription: "Nimbus is a macOS app that records workflow history and turns it into searchable context for MCP-compatible AI agents. It helps agents navigate internal tools using prior examples of how work was done.",
     thumbnail: nimbusFrame13,
     images: [
       nimbusFrame13,
@@ -131,7 +131,7 @@ export const projects: Project[] = [
     id: "scholar-ai",
     title: "Scholar AI",
     description: "Research assistant for finding sources and structuring academic arguments",
-    longDescription: "A research and argumentation assistant inspired by philosophy coursework. Uses hybrid retrieval (vector similarity + metadata filtering) from a Supabase pgvector database of scholarly works. Generates structured academic responses with thesis, supporting arguments, objections, and replies—all grounded in primary sources with full provenance. Built with Streamlit and OpenAI models.",
+    longDescription: "Scholar AI searches scholarly sources, ranks matches with hybrid retrieval, and drafts thesis and argument structures with citations. Built with Streamlit, OpenAI models, and Supabase pgvector.",
     thumbnail: scholarAiImage,
     images: [
       scholarAiImage
@@ -150,8 +150,8 @@ export const projects: Project[] = [
   {
     id: "digital-cairo",
     title: "Digital Cairo Research",
-    description: "Research contributor to Duke University's historical data project on Cairo's press and urban history",
-    longDescription: "Contributed to Digital Cairo / News of Cairo, a digital humanities project at Duke University focusing on Cairo's press and urban history. Work involved research, data organization, and supporting the project's mission to preserve and analyze historical records of Egypt's journalistic heritage.",
+    description: "Research support for Duke's Digital Cairo project",
+    longDescription: "Digital Cairo / News of Cairo is a Duke digital humanities project on Cairo's press and urban history. I contributed research support and data organization for the historical record collection.",
     thumbnail: digitalCairoResearchImage,
     images: [
       digitalCairoResearchImage

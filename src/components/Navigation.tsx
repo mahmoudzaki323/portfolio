@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { cn } from "../lib/utils";
-import {
-  THEME_STORAGE_KEY,
-  applyTheme,
-  getAutoTheme,
-  getPreferredTheme,
-  getStoredTheme,
-  type PortfolioTheme,
-} from "../lib/theme";
+import { applyTheme } from "../lib/theme";
 
 const navItems = [
   { id: "projects", label: "Work" },
@@ -24,8 +17,6 @@ export function Navigation() {
   const [activeSection, setActiveSection] = useState("hero");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<PortfolioTheme>(() => getPreferredTheme());
-  const [isManualTheme, setIsManualTheme] = useState(() => getStoredTheme() !== null);
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -70,36 +61,13 @@ export function Navigation() {
   }, []);
 
   useEffect(() => {
-    const storedTheme = getStoredTheme();
-    applyTheme(storedTheme ?? getAutoTheme(), storedTheme ? "manual" : "auto");
-
-    const timer = window.setInterval(() => {
-      if (getStoredTheme()) return;
-      const autoTheme = getAutoTheme();
-      setTheme(autoTheme);
-      setIsManualTheme(false);
-      applyTheme(autoTheme, "auto");
-    }, 60_000);
-
-    return () => window.clearInterval(timer);
+    applyTheme();
   }, []);
 
   const handleNavClick = (id: string) => {
     scrollToSection(id);
     setIsMobileMenuOpen(false);
   };
-
-  const handleThemeToggle = () => {
-    setTheme((currentTheme) => {
-      const nextTheme = currentTheme === "light" ? "dark" : "light";
-      window.sessionStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-      setIsManualTheme(true);
-      applyTheme(nextTheme, "manual");
-      return nextTheme;
-    });
-  };
-
-  const nextThemeLabel = theme === "light" ? "dark" : "light";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
@@ -146,29 +114,15 @@ export function Navigation() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            className="icon-action focus-ring grid h-10 w-10 place-items-center border border-line text-primary"
-            aria-label={`Switch to ${nextThemeLabel} theme`}
-            title={`${isManualTheme ? "Manual" : "Auto"} theme: ${theme}`}
+          <a
+            href="https://www.linkedin.com/in/mahmoudzaki-"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="action-secondary focus-ring hidden items-center gap-2 px-4 py-2 text-sm md:inline-flex"
           >
-            {theme === "light" ? (
-              <Moon className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Sun className="h-4 w-4" aria-hidden="true" />
-            )}
-          </button>
-
-        <a
-          href="https://www.linkedin.com/in/mahmoudzaki-"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="action-secondary focus-ring hidden items-center gap-2 px-4 py-2 text-sm md:inline-flex"
-        >
-          Get in touch
-          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-        </a>
+            Get in touch
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </a>
         </div>
 
         <button
@@ -203,15 +157,6 @@ export function Navigation() {
               <ArrowUpRight className="h-4 w-4" />
             </button>
           ))}
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            className="focus-ring flex w-full items-center justify-between border-b border-line px-3 py-4 text-left text-sm text-secondary transition-colors hover:text-primary"
-            aria-label={`Switch to ${nextThemeLabel} theme`}
-          >
-            {theme === "light" ? "Switch to dark" : "Switch to light"}
-            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-          </button>
           <a
             href="https://www.linkedin.com/in/mahmoudzaki-"
             target="_blank"

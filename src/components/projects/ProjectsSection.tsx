@@ -1,60 +1,77 @@
-import { FeaturedProject } from "./FeaturedProject";
-import { ProjectCard } from "./ProjectCard";
-import { projects, featuredProjects, otherProjects } from "../../data/projects";
+import { FeaturedProjectsCarousel } from "./FeaturedProjectsCarousel";
+import { Gallery4, type Gallery4Item } from "../ui/gallery4";
+import { featuredProjects, otherProjects } from "../../data/projects";
+import type { Project } from "../../data/projects";
+
+function getProjectLink(project: Project) {
+  const href =
+    project.links.research ??
+    project.links.demo ??
+    project.links.productHunt ??
+    project.links.caseStudy ??
+    project.links.github;
+
+  if (!href) return null;
+
+  const label = project.links.research
+    ? "View research"
+    : project.links.demo
+      ? "View website"
+      : project.links.productHunt
+        ? "View Product Hunt"
+        : project.links.github
+          ? "View code"
+          : "View case study";
+
+  return {
+    href,
+    label,
+    isExternal: href.startsWith("http")
+  };
+}
+
+const otherProjectItems: Gallery4Item[] = otherProjects.map((project) => {
+  const projectLink = getProjectLink(project);
+
+  return {
+    id: project.id,
+    title: project.title,
+    description: project.longDescription,
+    href: projectLink?.href,
+    linkLabel: projectLink?.label,
+    isExternal: projectLink?.isExternal,
+    image: project.thumbnail,
+    imageFit: project.imageFit,
+    year: project.year,
+    stats: project.stats,
+    tags: project.tags,
+    accent: project.color
+  };
+});
 
 export function ProjectsSection() {
   return (
     <section id="projects" className="section-shell section-grid border-b border-line py-24 md:py-32">
       <div className="mx-auto max-w-site px-5 md:px-8">
-        <div className="grid gap-10 border-b border-line pb-12 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+        <div className="border-b border-line pb-12">
           <div>
             <p className="eyebrow mb-5 text-accent">02 / Projects</p>
             <h2 className="max-w-[13ch] text-5xl font-medium leading-[0.9] text-primary md:text-7xl">
-              Selected projects.
+              Projects.
             </h2>
           </div>
-          <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-            <p className="max-w-[58ch] text-base leading-8 text-secondary">
-              Product work, internal tools, and research projects across AI,
-              operations, and finance. The through line is straightforward:
-              software that needed to be useful in practice, not just
-              interesting in a deck.
-            </p>
-            <div className="grid grid-cols-2 gap-6 border-l border-line pl-6 md:w-72">
-              <div>
-                <p className="mono-tabular text-3xl text-primary">{projects.length}</p>
-                <p className="mt-2 text-sm text-tertiary">selected projects</p>
-              </div>
-              <div>
-                <p className="mono-tabular text-3xl text-primary">{featuredProjects.length}</p>
-                <p className="mt-2 text-sm text-tertiary">featured projects</p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div className="divide-y divide-line">
-          {featuredProjects.map((project, index) => (
-            <FeaturedProject key={project.id} project={project} index={index} />
-          ))}
-        </div>
+        <FeaturedProjectsCarousel projects={featuredProjects} />
 
         {otherProjects.length > 0 && (
-          <div className="border-t border-line pt-20 md:pt-24">
-            <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-              <div>
-                <p className="eyebrow mb-4 text-accent">Additional work</p>
-                <h3 className="text-3xl font-medium text-primary md:text-5xl">
-                  More projects.
-                </h3>
-              </div>
-            </div>
-
-            <div className="grid gap-px overflow-hidden border border-line bg-line lg:grid-cols-3">
-              {otherProjects.map((project, index) => (
-                <ProjectCard key={project.id} project={project} index={index} />
-              ))}
-            </div>
+          <div className="border-t border-line pt-10 md:pt-12">
+            <Gallery4
+              eyebrow="Other work"
+              title="More work."
+              description="A horizontal gallery of the research systems, investor tooling, and AI product experiments that sit outside the selected case studies."
+              items={otherProjectItems}
+            />
           </div>
         )}
       </div>

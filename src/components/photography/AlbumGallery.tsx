@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Aperture, Calendar, ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Album, Photo, Trip } from "../../data/trips";
@@ -164,30 +165,33 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [closeGallery, isOpen, isPhotoModalOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === "undefined") return null;
 
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 top-[5.5rem] z-40 md:top-[5.75rem]">
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 md:p-8">
       <button
         type="button"
         aria-label="Close gallery"
-        className="pointer-events-auto absolute inset-0 h-full w-full bg-background/36 transition-colors hover:bg-background/42"
+        className="absolute inset-0 h-full w-full bg-background/76 backdrop-blur-sm transition-colors hover:bg-background/82"
         onClick={closeGallery}
       />
 
       <div
-        className="pointer-events-auto absolute bottom-3 left-3 right-3 top-3 z-10 flex w-auto animate-[galleryIn_260ms_cubic-bezier(0.16,1,0.3,1)] flex-col overflow-hidden border border-line bg-background/95 shadow-[0_24px_90px_rgba(0,0,0,0.38)] md:bottom-5 md:left-auto md:right-5 md:top-5 md:w-[min(40rem,calc(100vw-3rem))]"
+        className="relative z-10 flex max-h-[min(86dvh,58rem)] w-full max-w-6xl animate-[galleryIn_260ms_cubic-bezier(0.16,1,0.3,1)] flex-col overflow-hidden border border-line bg-background/96 shadow-[0_24px_90px_rgba(0,0,0,0.46)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="album-gallery-title"
       >
         <div className="shrink-0 border-b border-line bg-background/98 p-4 md:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
+          <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-start">
+            <div className="min-w-0">
               <p className="eyebrow text-accent">{trip.country}</p>
               <h2 id="album-gallery-title" className="mt-2 text-2xl font-semibold text-primary md:text-3xl">
                 {trip.name}
               </h2>
+              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-secondary">
+                {activeAlbum.description}
+              </p>
             </div>
             <button
               type="button"
@@ -199,7 +203,7 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
             </button>
           </div>
 
-          <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
+          <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto">
             {trip.albums.map((album) => (
               <button
                 key={album.id}
@@ -219,9 +223,7 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
         </div>
 
         <div className="trip-scroll flex-1 overflow-y-auto overscroll-contain p-4 md:p-6">
-          <p className="max-w-[58ch] text-sm leading-7 text-secondary">{activeAlbum.description}</p>
-
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
             {activeAlbum.photos.map((photo, index) => {
               const photoIndex = allPhotos.findIndex((item) => item.id === photo.id);
 
@@ -234,8 +236,8 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
                     setIsPhotoModalOpen(true);
                   }}
                   className={cn(
-                    "focus-ring group relative overflow-hidden border border-line bg-surface text-left",
-                    index === 0 ? "col-span-2 aspect-[16/9]" : "aspect-[4/5]"
+                    "focus-ring group relative aspect-[4/5] overflow-hidden border border-line bg-surface text-left",
+                    index % 7 === 0 && "md:col-span-2 md:aspect-[16/10]"
                   )}
                 >
                   <img
@@ -268,6 +270,7 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
           hasNext={activePhotoIndex < allPhotos.length - 1}
         />
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -38,13 +38,13 @@ export const ProjectCard = memo(function ProjectCard({ project, index }: Project
   const projectLink = getProjectLink(project);
 
   return (
-    <article className="group bg-background/90 p-5 transition-colors duration-300 hover:bg-background-soft md:p-6">
+    <article className="prism-edge project-shimmer group bg-background/90 p-5 transition-colors duration-300 hover:bg-background-soft md:p-6">
       <div className="mb-6 flex items-center justify-between font-mono text-xs uppercase tracking-[0.12em] text-tertiary">
         <span>{String(index + 1).padStart(2, "0")}</span>
         <span>{project.year}</span>
       </div>
 
-      <div className="relative mb-6 aspect-[4/3] overflow-hidden border border-line bg-surface">
+      <div className="prism-edge project-shimmer relative mb-6 aspect-[4/3] border border-line bg-surface">
         <img
           src={project.thumbnail}
           alt={`${project.title} preview`}

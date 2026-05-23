@@ -611,7 +611,7 @@ export const trips: Trip[] = [
       "start": "2025-12-11",
       "end": "2025-12-11"
     },
-    "description": "Granite walls, valley light, and the first west-coast national park frames in the archive.",
+    "description": "Granite walls, valley light, and early national park details.",
     "thumbnail": "/photography/instagram/yosemite/2025-12-11-DSHyJHugvxn-01.jpg",
     "albums": [
       {
@@ -1139,13 +1139,13 @@ export const trips: Trip[] = [
       "start": "2025-11-04",
       "end": "2025-11-04"
     },
-    "description": "A fall-color run into the North Carolina mountains built around taking photos first.",
+    "description": "North Carolina mountains and autumn color.",
     "thumbnail": "/photography/instagram/blue-ridge/2025-11-04-DQpiPCjibU9-01.jpg",
     "albums": [
       {
         "id": "blue-ridge-dqpipcjibu9",
         "title": "Fall in North Carolina",
-        "description": "A mountains-first North Carolina trip built around autumn color.",
+        "description": "North Carolina mountains in autumn.",
         "coverImage": "/photography/instagram/blue-ridge/2025-11-04-DQpiPCjibU9-01.jpg",
         "photos": [
           {
@@ -1291,7 +1291,7 @@ export const trips: Trip[] = [
       {
         "id": "cairo-dsv2vh7av-u",
         "title": "A Walk Through Cairo",
-        "description": "Street scenes and city details from a winter walk through Cairo.",
+        "description": "Street scenes from a winter walk in Cairo.",
         "coverImage": "/photography/instagram/cairo/2025-12-27-DSv2vh7Av_U-01.jpg",
         "photos": [
           {
@@ -1443,7 +1443,7 @@ export const trips: Trip[] = [
       {
         "id": "cairo-dsv2ql-gtch",
         "title": "Twenty Minutes From Home",
-        "description": "Historic Cairo through the lens of a place that still feels close to home.",
+        "description": "Historic Cairo, close to home.",
         "coverImage": "/photography/instagram/cairo/2025-12-27-DSv2qL_gtCH-01.jpg",
         "photos": [
           {

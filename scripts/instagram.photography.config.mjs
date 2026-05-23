@@ -56,7 +56,7 @@ export default {
       country: "USA",
       coordinates: { lat: 37.7469, lng: -119.5904 },
       color: "#84a98c",
-      description: "Granite walls, valley light, and the first west-coast national park frames in the archive.",
+      description: "Granite walls, valley light, and early national park details.",
       match: {
         locations: ["yosemite"],
         captions: ["yosemite"],
@@ -100,7 +100,7 @@ export default {
       country: "USA",
       coordinates: { lat: 35.7596, lng: -82.2717 },
       color: "#588157",
-      description: "A fall-color run into the North Carolina mountains built around taking photos first.",
+      description: "North Carolina mountains and autumn color.",
       match: {
         locations: ["blue ridge", "north carolina"],
         captions: ["n.c.", "mountains", "fall"],
@@ -122,13 +122,13 @@ export default {
     DSv2vh7Av_U: {
       tripId: "cairo",
       title: "A Walk Through Cairo",
-      description: "Street scenes and city details from a winter walk through Cairo.",
+      description: "Street scenes from a winter walk in Cairo.",
       locationName: "Cairo, Egypt",
     },
     DSv2qL_gtCH: {
       tripId: "cairo",
       title: "Twenty Minutes From Home",
-      description: "Historic Cairo through the lens of a place that still feels close to home.",
+      description: "Historic Cairo, close to home.",
       locationName: "Cairo, Egypt",
     },
     DSHyv3kgua1: {
@@ -165,7 +165,7 @@ export default {
     DQpiPCjibU9: {
       tripId: "blue-ridge",
       title: "Fall in North Carolina",
-      description: "A mountains-first North Carolina trip built around autumn color.",
+      description: "North Carolina mountains in autumn.",
       locationName: "Blue Ridge Mountains, North Carolina",
     },
     "DP-5V6QjeEM": {

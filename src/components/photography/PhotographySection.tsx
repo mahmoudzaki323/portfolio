@@ -10,6 +10,8 @@ import { updateScrollState } from "../../lib/scrollState";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const ROUTE_SCROLL_VH_PER_SEGMENT = 72;
+
 function coordinateLabel(value: number, positive: string, negative: string) {
   return `${Math.abs(value).toFixed(4)} ${value >= 0 ? positive : negative}`;
 }
@@ -33,10 +35,30 @@ export function PhotographySection() {
   const [currentTripIndex, setCurrentTripIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isGlobeHintDismissed, setIsGlobeHintDismissed] = useState(false);
+  const [isManualGlobeControlActive, setIsManualGlobeControlActiveState] = useState(false);
   const globeHintDismissedRef = useRef(false);
+  const manualGlobeControlRef = useRef(false);
 
   const focusedTripIdRef = useRef(focusedTripId);
   const isGalleryOpenRef = useRef(isGalleryOpen);
+
+  const setIsManualGlobeControlActive = useCallback((value: boolean) => {
+    if (manualGlobeControlRef.current === value) return;
+    manualGlobeControlRef.current = value;
+    setIsManualGlobeControlActiveState(value);
+  }, []);
+
+  const handleManualGlobeControlStart = useCallback(() => {
+    setIsManualGlobeControlActive(true);
+    if (!globeHintDismissedRef.current) {
+      globeHintDismissedRef.current = true;
+      setIsGlobeHintDismissed(true);
+    }
+  }, [setIsManualGlobeControlActive]);
+
+  const handleManualGlobeControlEnd = useCallback(() => {
+    setIsManualGlobeControlActive(false);
+  }, [setIsManualGlobeControlActive]);
 
   const totals = useMemo(() => {
     const albums = trips.reduce((sum, trip) => sum + trip.albums.length, 0);
@@ -82,10 +104,14 @@ export function PhotographySection() {
       trigger: sectionRef.current,
       start: "top top",
       end: "bottom bottom",
-      scrub: 0.25,
+      scrub: 0.12,
       onUpdate: (self) => {
         const progress = self.progress;
         updateScrollState(progress, segmentCount);
+
+        if (manualGlobeControlRef.current) {
+          setIsManualGlobeControlActive(false);
+        }
 
         if (!globeHintDismissedRef.current && progress > 0.01) {
           globeHintDismissedRef.current = true;
@@ -139,7 +165,7 @@ export function PhotographySection() {
       scrollTriggerRef.current?.kill();
       scrollTriggerRef.current = null;
     };
-  }, [hasTrips]);
+  }, [hasTrips, setIsManualGlobeControlActive]);
 
   useEffect(() => {
     if (!cardsContainerRef.current || focusedTripId) return;
@@ -162,6 +188,7 @@ export function PhotographySection() {
       if (!trip) return;
 
       clearFocusTimeout();
+      setIsManualGlobeControlActive(false);
       setFocusedTripId(tripId);
       setActiveTrip(trip);
 
@@ -179,7 +206,7 @@ export function PhotographySection() {
         focusTimeoutRef.current = null;
       }, 2500);
     },
-    [clearFocusTimeout]
+    [clearFocusTimeout, setIsManualGlobeControlActive]
   );
 
   const handleGalleryOpen = useCallback(() => {
@@ -198,7 +225,8 @@ export function PhotographySection() {
 
   useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
-  const sectionHeight = hasTrips ? `${120 + trips.length * 120}vh` : "100vh";
+  const sectionSegments = Math.max(trips.length - 1, 1);
+  const sectionHeight = hasTrips ? `${100 + sectionSegments * ROUTE_SCROLL_VH_PER_SEGMENT}vh` : "100vh";
   const showGlobeHint = !isGlobeHintDismissed && !isGalleryOpen;
 
   return (
@@ -213,6 +241,9 @@ export function PhotographySection() {
             visibleLabelId={visibleLabelId}
             onTripSelect={handleTripSelect}
             onLoad={() => setEarthLoaded(true)}
+            isManualControlActive={isManualGlobeControlActive}
+            onManualControlStart={handleManualGlobeControlStart}
+            onManualControlEnd={handleManualGlobeControlEnd}
           />
         </div>
 
@@ -228,9 +259,9 @@ export function PhotographySection() {
           aria-hidden={!showGlobeHint}
         >
           <div className="glass-panel pointer-events-auto max-w-sm p-4 text-center md:max-w-md md:p-5">
-            <p className="eyebrow text-accent">Travel archive</p>
+            <p className="eyebrow text-accent">Photography</p>
             <p className="mt-3 text-sm leading-6 text-primary md:text-base">
-              Keep scrolling to travel around the world through my lens.
+              Drag the globe or choose a destination.
             </p>
             <button
               type="button"
@@ -240,13 +271,13 @@ export function PhotographySection() {
               }}
               className="focus-ring mt-4 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary"
             >
-              Got it
+              Close
             </button>
           </div>
         </div>
 
-        <div className="relative z-20 mx-auto flex h-full max-w-site px-5 py-14 md:px-8 md:py-16">
-          <aside className="flex h-full w-full max-w-[31rem] flex-col border-r border-line pr-0 md:pr-8">
+        <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-site px-5 py-14 md:px-8 md:py-16">
+          <aside className="pointer-events-auto flex h-full w-full max-w-[31rem] flex-col border-r border-line pr-0 md:pr-8">
             <div className="shrink-0 border-b border-line pb-5">
               <div className="mb-4 flex items-center gap-3 text-accent">
                 <Camera className="h-5 w-5" />
@@ -256,8 +287,7 @@ export function PhotographySection() {
                 Travel photography, organized by place.
               </h2>
               <p className="mt-4 max-w-[42ch] text-sm leading-6 text-secondary">
-                Scroll through destinations or open an album directly from the
-                map.
+                Choose a destination or open an album from the map.
               </p>
 
               <div className="mt-5 grid grid-cols-3 divide-x divide-line border-y border-line py-4">
@@ -278,7 +308,7 @@ export function PhotographySection() {
 
             <div className="mt-4 flex items-center justify-between text-xs uppercase text-tertiary">
               <span>Destinations</span>
-              <span className="text-accent">Scroll route</span>
+              <span className="text-accent">Route</span>
             </div>
 
             <div
@@ -302,8 +332,7 @@ export function PhotographySection() {
                   ))
                 ) : (
                   <div className="glass-panel-soft p-6 text-sm leading-7 text-secondary">
-                    Run the Instagram sync to populate this archive with local
-                    photography.
+                    No albums loaded.
                   </div>
                 )}
               </div>
@@ -311,7 +340,7 @@ export function PhotographySection() {
 
             <div className="mt-4 flex shrink-0 items-center gap-3 border-t border-line pt-4 text-sm text-secondary">
               <Map className="h-4 w-4 text-accent" />
-              <span>Each pin opens a trip archive.</span>
+              <span>Drag globe. Scroll route.</span>
             </div>
 
             {activeTrip && (
@@ -331,12 +360,12 @@ export function PhotographySection() {
             )}
           </aside>
 
-          <div className="hidden flex-1 items-end justify-end pb-14 md:flex">
+          <div className="pointer-events-none hidden flex-1 items-end justify-end pb-14 md:flex">
             {activeTrip && (
               <button
                 type="button"
                 onClick={handleGalleryOpen}
-                className="glass-panel focus-ring group w-[min(30rem,42vw)] p-5 text-left transition duration-500"
+                className="glass-panel focus-ring pointer-events-auto group w-[min(30rem,42vw)] p-5 text-left transition duration-500"
                 style={{
                   opacity: hasTrips && isZoomedIn && !isGalleryOpen ? 1 : 0,
                   transform:

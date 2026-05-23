@@ -1,4 +1,4 @@
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Project } from "../../data/projects";
 
@@ -29,22 +29,14 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
   const demoUrl = project.links.demo;
   const hasDemoUrl = Boolean(demoUrl);
   const isContainedImage = project.imageFit === "contain";
-  const sectionLabel = "Featured project";
-  const previewLabel = hasDemoUrl ? "Website preview" : "Project preview";
   const preview = (
     <div
       className="glass-panel overflow-hidden"
     >
       <div
-        className="flex items-center justify-between border-b border-line px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary"
+        className="border-b border-line px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary"
       >
         <span>{project.year}</span>
-        <span className="inline-flex items-center gap-2 text-accent">
-          {previewLabel}
-          {hasDemoUrl && (
-            <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          )}
-        </span>
       </div>
       <div
         className={cn(
@@ -73,7 +65,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
     <article
       className={cn(
         "relative grid gap-10 py-16 md:py-20 lg:grid-cols-[0.48fr_0.22fr_0.9fr] lg:items-center",
-        hasWarmShell && "warm-feature-shell isolate my-8 px-5 py-10 md:px-6 lg:px-8"
+        hasWarmShell && "warm-feature-shell prism-edge project-shimmer my-8 px-5 py-10 md:px-6 lg:px-8"
       )}
     >
       {hasDemoUrl && <LiveBadge />}
@@ -86,9 +78,6 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
         </div>
 
         <div>
-          <p className="eyebrow mb-4 text-accent">
-            {sectionLabel}
-          </p>
           <h3 className="text-4xl font-medium leading-none text-primary md:text-6xl">
             {project.title}
           </h3>
@@ -131,7 +120,7 @@ export function FeaturedProject({ project, index }: FeaturedProjectProps) {
 
       <div
         className={cn(
-          "relative z-10 grid grid-cols-3 gap-px lg:grid-cols-1",
+          "prism-edge project-shimmer relative z-10 grid grid-cols-3 gap-px lg:grid-cols-1",
           "bg-line"
         )}
       >

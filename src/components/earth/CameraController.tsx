@@ -10,6 +10,7 @@ interface CameraControllerProps {
   targetTrip?: Trip | null;
   trips?: Trip[];
   radius?: number;
+  isManualControlActive?: boolean;
 }
 
 // Smooth easing functions
@@ -25,6 +26,7 @@ export function CameraController({
   targetTrip,
   trips = [],
   radius = 2,
+  isManualControlActive = false,
 }: CameraControllerProps) {
   const { camera } = useThree();
 
@@ -72,12 +74,10 @@ export function CameraController({
     const ELEVATION_IN = r * 0.55;
     const ELEVATION_OUT = r * 1.1;
 
-    // Animation phases:
-    // 0.00 - 0.15: Hold at FROM location (zoomed in)
-    // 0.15 - 0.35: Zoom out
-    // 0.35 - 0.65: Rotate globe (zoomed out)
-    // 0.65 - 0.85: Zoom in to TO location
-    // 0.85 - 1.00: Hold at TO location (zoomed in)
+    const HOLD_START_END = 0.06;
+    const ZOOM_OUT_END = 0.24;
+    const ROTATE_END = 0.76;
+    const ZOOM_IN_END = 0.94;
 
     let camDist: number;
     let elevation: number;
@@ -86,34 +86,29 @@ export function CameraController({
     // Clamp progress to 0-1 range
     const p = Math.max(0, Math.min(1, progress));
 
-    if (p < 0.15) {
-      // Hold at FROM - zoomed in
+    if (p < HOLD_START_END) {
       camDist = ZOOM_IN;
       elevation = ELEVATION_IN;
       lookAtT = 0;
-    } else if (p < 0.35) {
-      // Zoom out phase
-      const t = (p - 0.15) / 0.2;
+    } else if (p < ZOOM_OUT_END) {
+      const t = (p - HOLD_START_END) / (ZOOM_OUT_END - HOLD_START_END);
       const eased = easeInOutQuart(t);
       camDist = ZOOM_IN + (ZOOM_OUT - ZOOM_IN) * eased;
       elevation = ELEVATION_IN + (ELEVATION_OUT - ELEVATION_IN) * eased;
-      lookAtT = eased * 0.15;
-    } else if (p < 0.65) {
-      // Main rotation phase - zoomed out
-      const t = (p - 0.35) / 0.3;
+      lookAtT = eased * 0.12;
+    } else if (p < ROTATE_END) {
+      const t = (p - ZOOM_OUT_END) / (ROTATE_END - ZOOM_OUT_END);
       const eased = easeInOutCubic(t);
       camDist = ZOOM_OUT;
       elevation = ELEVATION_OUT;
-      lookAtT = 0.15 + eased * 0.7;
-    } else if (p < 0.85) {
-      // Zoom in to destination
-      const t = (p - 0.65) / 0.2;
+      lookAtT = 0.12 + eased * 0.76;
+    } else if (p < ZOOM_IN_END) {
+      const t = (p - ROTATE_END) / (ZOOM_IN_END - ROTATE_END);
       const eased = easeInOutQuart(t);
       camDist = ZOOM_OUT + (ZOOM_IN - ZOOM_OUT) * eased;
       elevation = ELEVATION_OUT + (ELEVATION_IN - ELEVATION_OUT) * eased;
-      lookAtT = 0.85 + eased * 0.15;
+      lookAtT = 0.88 + eased * 0.12;
     } else {
-      // Hold at TO - zoomed in
       camDist = ZOOM_IN;
       elevation = ELEVATION_IN;
       lookAtT = 1;
@@ -186,6 +181,12 @@ export function CameraController({
   // MAIN ANIMATION LOOP
   // Reads directly from global scroll state for immediate updates
   useFrame((_, delta) => {
+    if (isManualControlActive) {
+      smoothPosition.current.copy(camera.position);
+      smoothLookAt.current.set(0, 0, 0);
+      return;
+    }
+
     if (isClickZoomed.current) {
       camera.position.copy(smoothPosition.current);
       camera.lookAt(smoothLookAt.current);
