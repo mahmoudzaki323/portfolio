@@ -50,9 +50,9 @@ export const projects: Project[] = [
       caseStudy: "#case-study-security-qa"
     },
     stats: [
-      { label: "Pilot Sites", value: "2" },
+      { label: "Pilot Sites", value: "3" },
       { label: "Planned Rollout", value: "20+" },
-      { label: "Guards Supervised", value: "150+" }
+      { label: "Guards Supervised", value: "300+" }
     ],
     color: "#3b82f6",
     year: "2025",
@@ -74,7 +74,7 @@ export const projects: Project[] = [
     stats: [
       { label: "Custom forecasting", value: "Daily" },
       { label: "Operating signals", value: "9 inputs" },
-      { label: "Pre-close fixes", value: "Action cards" }
+      { label: "Forecasted metrics", value: "5" }
     ],
     color: "#065f46",
     year: "2026",
@@ -98,7 +98,7 @@ export const projects: Project[] = [
       productHunt: "https://www.producthunt.com/products/nimbus-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nimbus-1c165f5e-63f2-4444-9d1b-4fcf70998a35"
     },
     stats: [
-      { label: "Context capture", value: "Workflow history" },
+      { label: "Context feeds", value: "2" },
       { label: "MCP Tools", value: "7" },
       { label: "Platform", value: "macOS" }
     ],
