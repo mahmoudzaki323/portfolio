@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { Project } from "../../data/projects";
@@ -8,6 +8,9 @@ import {
   getFeaturedCarouselHeight,
   getInterpolatedSlideVisualState,
   getNativeCarouselProgress,
+  getPageSyncedDragScrollDelta,
+  getPageSyncedHorizontalWheelDelta,
+  getPinnedCarouselSnapProgress,
   getPinnedCarouselSlideProgress,
 } from "./carouselMath";
 
@@ -29,9 +32,11 @@ function LiveBadge() {
 
 export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const activeIndexRef = useRef(0);
+  const suppressClickRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -41,6 +46,13 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     if (!section || !track || projects.length <= 1) return;
 
     let frameId = 0;
+    let snapTimeoutId = 0;
+    let suppressClickTimeoutId = 0;
+    let dragPointerId: number | null = null;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let dragStartScrollY = 0;
+    let hasDragged = false;
 
     const updateCarousel = () => {
       const maxIndex = projects.length - 1;
@@ -101,6 +113,18 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       requestUpdate();
     };
 
+    const getSectionScrollMetrics = () => {
+      const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+      const scrollableDistance = Math.max(section.offsetHeight - window.innerHeight, 1);
+      const rawProgress = (window.scrollY - sectionTop) / scrollableDistance;
+
+      return {
+        rawProgress,
+        scrollableDistance,
+        sectionTop,
+      };
+    };
+
     const syncProgressFromScroll = (immediate = false) => {
       const sectionRect = section.getBoundingClientRect();
       const nextProgress = getNativeCarouselProgress(
@@ -112,8 +136,124 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       setCarouselProgress(nextProgress, immediate);
     };
 
+    const snapToNearestProject = () => {
+      snapTimeoutId = 0;
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const { rawProgress, scrollableDistance, sectionTop } = getSectionScrollMetrics();
+
+      if (rawProgress < 0 || rawProgress > 1) return;
+
+      const targetProgress = getPinnedCarouselSnapProgress(rawProgress, projects.length);
+      const targetScrollY = sectionTop + scrollableDistance * targetProgress;
+
+      if (Math.abs(window.scrollY - targetScrollY) < 2) return;
+
+      window.scrollTo({
+        top: targetScrollY,
+        behavior: "smooth",
+      });
+    };
+
+    const scheduleProjectSnap = (delay = 140) => {
+      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
+      snapTimeoutId = window.setTimeout(snapToNearestProject, delay);
+    };
+
     const handleScroll = () => {
       syncProgressFromScroll();
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReducedMotion || event.ctrlKey) return;
+
+      const scrollDelta = getPageSyncedHorizontalWheelDelta(event, window.innerHeight);
+
+      if (scrollDelta) {
+        event.preventDefault();
+        window.scrollBy({ top: scrollDelta, left: 0, behavior: "instant" });
+      }
+
+      scheduleProjectSnap();
+    };
+
+    const isDragControl = (target: EventTarget | null) =>
+      target instanceof Element &&
+      Boolean(target.closest("button, input, select, textarea, [data-carousel-control]"));
+
+    const clearClickSuppression = () => {
+      suppressClickRef.current = false;
+      suppressClickTimeoutId = 0;
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        event.button !== 0 ||
+        event.ctrlKey ||
+        event.pointerType === "touch" ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+        isDragControl(event.target)
+      ) {
+        return;
+      }
+
+      dragPointerId = event.pointerId;
+      dragStartX = event.clientX;
+      dragStartY = event.clientY;
+      dragStartScrollY = window.scrollY;
+      hasDragged = false;
+
+      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
+      if (suppressClickTimeoutId) window.clearTimeout(suppressClickTimeoutId);
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerId !== dragPointerId) return;
+
+      const deltaX = event.clientX - dragStartX;
+      const deltaY = event.clientY - dragStartY;
+
+      if (!hasDragged) {
+        if (Math.abs(deltaX) < 8 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+        hasDragged = true;
+        suppressClickRef.current = true;
+        section.classList.add("is-dragging");
+
+        try {
+          section.setPointerCapture(event.pointerId);
+        } catch {
+          // Pointer capture can fail if the browser cancels the pointer before this handler completes.
+        }
+      }
+
+      event.preventDefault();
+      window.scrollTo({
+        top: dragStartScrollY + getPageSyncedDragScrollDelta(dragStartX, event.clientX),
+        behavior: "instant",
+      });
+    };
+
+    const finishPointerDrag = (event: PointerEvent) => {
+      if (event.pointerId !== dragPointerId) return;
+
+      dragPointerId = null;
+      section.classList.remove("is-dragging");
+
+      try {
+        if (section.hasPointerCapture(event.pointerId)) {
+          section.releasePointerCapture(event.pointerId);
+        }
+      } catch {
+        // The pointer may already be released after a browser-level cancel.
+      }
+
+      if (!hasDragged) return;
+
+      scheduleProjectSnap(40);
+      suppressClickTimeoutId = window.setTimeout(clearClickSuppression, 400);
     };
 
     const handleResize = () => {
@@ -124,11 +264,24 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", handleResize);
+    section.addEventListener("wheel", handleWheel, { passive: false });
+    section.addEventListener("pointerdown", handlePointerDown);
+    section.addEventListener("pointermove", handlePointerMove);
+    section.addEventListener("pointerup", finishPointerDrag);
+    section.addEventListener("pointercancel", finishPointerDrag);
 
     return () => {
       if (frameId) window.cancelAnimationFrame(frameId);
+      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
+      if (suppressClickTimeoutId) window.clearTimeout(suppressClickTimeoutId);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
+      section.removeEventListener("wheel", handleWheel);
+      section.removeEventListener("pointerdown", handlePointerDown);
+      section.removeEventListener("pointermove", handlePointerMove);
+      section.removeEventListener("pointerup", finishPointerDrag);
+      section.removeEventListener("pointercancel", finishPointerDrag);
+      section.classList.remove("is-dragging");
     };
   }, [projects.length]);
 
@@ -150,6 +303,63 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       top: sectionTop + scrollableDistance * targetProgress,
       behavior: prefersReducedMotion ? "auto" : "smooth",
     });
+  };
+
+  const handleSlideClickCapture = (index: number, event: MouseEvent<HTMLElement>) => {
+    if (suppressClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickRef.current = false;
+      return;
+    }
+
+    if (index === activeIndex) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    jumpToProject(index);
+  };
+
+  const handleViewportClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (suppressClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickRef.current = false;
+      return;
+    }
+
+    const target = event.target;
+    if (
+      target instanceof Element &&
+      target.closest("button, input, select, textarea, [data-carousel-control]")
+    ) {
+      return;
+    }
+
+    const viewport = viewportRef.current;
+    const activeSlide = trackRef.current?.children[activeIndex] as HTMLElement | undefined;
+
+    if (!viewport || !activeSlide) return;
+
+    const viewportRect = viewport.getBoundingClientRect();
+    const activeSlideRect = activeSlide.getBoundingClientRect();
+
+    if (event.clientY < viewportRect.top || event.clientY > viewportRect.bottom) return;
+
+    const edgeTolerance = 8;
+
+    if (event.clientX > activeSlideRect.right - edgeTolerance && activeIndex < projects.length - 1) {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpToProject(activeIndex + 1);
+      return;
+    }
+
+    if (event.clientX < activeSlideRect.left + edgeTolerance && activeIndex > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      jumpToProject(activeIndex - 1);
+    }
   };
 
   const canMoveBackward = activeIndex > 0;
@@ -214,7 +424,33 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
           </div>
         </div>
 
-        <div className="featured-carousel-viewport">
+        <div
+          ref={viewportRef}
+          className="featured-carousel-viewport"
+          onClickCapture={handleViewportClickCapture}
+        >
+          {canMoveBackward && (
+            <button
+              type="button"
+              tabIndex={-1}
+              data-carousel-control
+              className="featured-carousel-peek-hit-zone featured-carousel-peek-hit-zone-left"
+              onClick={() => jumpToProject(activeIndex - 1)}
+              aria-label="Show previous project"
+            />
+          )}
+
+          {canMoveForward && (
+            <button
+              type="button"
+              tabIndex={-1}
+              data-carousel-control
+              className="featured-carousel-peek-hit-zone featured-carousel-peek-hit-zone-right"
+              onClick={() => jumpToProject(activeIndex + 1)}
+              aria-label="Show next project"
+            />
+          )}
+
           <div ref={trackRef} className="featured-carousel-track">
             {projects.map((project, index) => {
               const demoUrl = project.links.demo;
@@ -224,7 +460,11 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
               return (
                 <article
                   key={project.id}
-                  className="featured-carousel-slide warm-feature-shell prism-edge project-shimmer"
+                  className={cn(
+                    "featured-carousel-slide warm-feature-shell prism-edge project-shimmer",
+                    index !== activeIndex && "featured-carousel-slide-clickable"
+                  )}
+                  onClickCapture={(event) => handleSlideClickCapture(index, event)}
                 >
                   {hasDemoUrl && <LiveBadge />}
 
@@ -245,6 +485,30 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
                         {project.longDescription}
                       </p>
                     </div>
+
+                    {demoUrl && (
+                      <a
+                        href={demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-carousel-control
+                        tabIndex={index === activeIndex ? undefined : -1}
+                        className="featured-carousel-website-cta action-primary focus-ring"
+                        aria-label={`Open ${project.title} website in a new tab`}
+                      >
+                        <span className="relative z-[3] min-w-0">
+                          <span className="featured-carousel-website-cta-kicker">
+                            Live website
+                          </span>
+                          <span className="featured-carousel-website-cta-title">
+                            Open {project.title}
+                          </span>
+                        </span>
+                        <span className="featured-carousel-website-cta-icon relative z-[3]" aria-hidden="true">
+                          <ExternalLink className="h-5 w-5" />
+                        </span>
+                      </a>
+                    )}
 
                     {!project.hideTags && (
                       <div className="flex flex-wrap gap-x-3 gap-y-2 text-xs text-tertiary">
@@ -276,25 +540,23 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
                         href={demoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        data-carousel-control
+                        tabIndex={index === activeIndex ? undefined : -1}
                         className="focus-ring group block"
                         aria-label={`Open ${project.title} website`}
                       >
-                        <ProjectPreview project={project} isContainedImage={isContainedImage} />
+                        <ProjectPreview
+                          project={project}
+                          isContainedImage={isContainedImage}
+                          hasDemoUrl={hasDemoUrl}
+                        />
                       </a>
                     ) : (
-                      <ProjectPreview project={project} isContainedImage={isContainedImage} />
-                    )}
-
-                    {demoUrl && (
-                      <a
-                        href={demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="action-highlight focus-ring mt-4 inline-flex items-center gap-2 px-5 py-3 font-mono text-xs uppercase tracking-[0.12em]"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        View website
-                      </a>
+                      <ProjectPreview
+                        project={project}
+                        isContainedImage={isContainedImage}
+                        hasDemoUrl={hasDemoUrl}
+                      />
                     )}
                   </div>
                 </article>
@@ -310,9 +572,11 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 function ProjectPreview({
   project,
   isContainedImage,
+  hasDemoUrl,
 }: {
   project: Project;
   isContainedImage: boolean;
+  hasDemoUrl: boolean;
 }) {
   return (
     <div className="glass-panel overflow-hidden">
@@ -331,6 +595,11 @@ function ProjectPreview({
           decoding="async"
         />
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/72 to-transparent" />
+        {hasDemoUrl && (
+          <span className="featured-preview-website-cue" aria-hidden="true">
+            <ExternalLink className="h-4 w-4" />
+          </span>
+        )}
       </div>
     </div>
   );

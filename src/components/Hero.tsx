@@ -15,7 +15,7 @@ export function Hero() {
           <div className="mb-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-tertiary">
             <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em]">
               <span className="h-px w-7 bg-accent" />
-              Computer Science / Economics
+              Product systems / research
             </span>
           </div>
 
@@ -23,11 +23,6 @@ export function Hero() {
             <span className="block">Mahmoud</span>
             <span className="hero-last-name block">Zaki</span>
           </h1>
-
-          <p className="mt-7 max-w-[58ch] text-base leading-8 text-secondary md:text-lg">
-            Computer science and economics at Duke, building software across
-            AI products, internal tools, and finance.
-          </p>
 
           <div className="mt-8 grid gap-3 sm:grid-cols-[auto_auto]">
             <button
@@ -55,11 +50,10 @@ export function Hero() {
           <div className="glass-panel p-5 md:p-6">
             <p className="eyebrow mb-3 text-accent">Projects</p>
             <h2 className="text-3xl font-medium leading-tight text-primary md:text-4xl">
-              Software, tools, and research.
+              Projects I've built and things I've made.
             </h2>
             <p className="mt-4 max-w-[42ch] text-sm leading-7 text-secondary">
-              AI products, finance workflows, operations tools, and academic
-              research.
+              Apps, systems, research.
             </p>
           </div>
 
@@ -88,13 +82,10 @@ export function Hero() {
                 <span className="text-secondary">B.S.</span> Economics, finance concentration
               </p>
               <p>
-                <span className="text-secondary">Distinction</span> Economics
-              </p>
-              <p>
                 <span className="text-secondary">B.S.</span> Computer Science
               </p>
               <p>
-                <span className="text-secondary">Certificate</span> Philosophy, Political Science, and Economics
+                <span className="text-secondary">Certificate</span> PPE
               </p>
             </div>
           </div>
@@ -107,6 +98,7 @@ export function Hero() {
         aria-label="Jump to projects"
         className="scroll-cue focus-ring group absolute bottom-20 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary md:inline-flex lg:bottom-24"
       >
+        <span>Scroll to explore</span>
         <ArrowDown className="scroll-cue-icon h-4 w-4 text-accent transition-transform duration-300 group-hover:translate-y-1" aria-hidden="true" />
       </button>
     </section>

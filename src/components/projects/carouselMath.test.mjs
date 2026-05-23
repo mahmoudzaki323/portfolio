@@ -10,8 +10,11 @@ import {
   getFeaturedCarouselHeight,
   getInterpolatedSlideVisualState,
   getNativeCarouselProgress,
+  getPageSyncedDragScrollDelta,
+  getPageSyncedHorizontalWheelDelta,
   getPinnedCarouselIndex,
   getPinnedCarouselProgress,
+  getPinnedCarouselSnapProgress,
   getPinnedCarouselSlideProgress,
   getSlideVisualState,
   getStagedSlideProgress,
@@ -68,17 +71,18 @@ test("starts pinned carousel progress before the sticky top reaches the viewport
   assert.equal(getPinnedCarouselProgress(-1000, pinDistance, leadInDistance), 1);
 });
 
-test("eases toward the next project before snapping at the existing timing point", () => {
+test("holds each pinned project before a short transition to the next one", () => {
   assert.equal(getPinnedCarouselSlideProgress(0, 3), 0);
-  assert.equal(getPinnedCarouselSlideProgress(0.05, 3), 0);
+  assert.equal(getPinnedCarouselSlideProgress(0.16, 3), 0);
 
-  const beforeFirstSnap = getPinnedCarouselSlideProgress(0.24, 3);
-  assert.ok(beforeFirstSnap > 0 && beforeFirstSnap < 1);
-  assert.equal(getPinnedCarouselSlideProgress(0.44, 3), 1);
+  const firstTransition = getPinnedCarouselSlideProgress(0.25, 3);
+  assert.ok(firstTransition > 0 && firstTransition < 1);
+  assert.equal(getPinnedCarouselSlideProgress(0.34, 3), 1);
+  assert.equal(getPinnedCarouselSlideProgress(0.66, 3), 1);
 
-  const beforeSecondSnap = getPinnedCarouselSlideProgress(0.7, 3);
-  assert.ok(beforeSecondSnap > 1 && beforeSecondSnap < 2);
-  assert.equal(getPinnedCarouselSlideProgress(0.94, 3), 2);
+  const secondTransition = getPinnedCarouselSlideProgress(0.75, 3);
+  assert.ok(secondTransition > 1 && secondTransition < 2);
+  assert.equal(getPinnedCarouselSlideProgress(0.84, 3), 2);
   assert.equal(getPinnedCarouselSlideProgress(1, 3), 2);
 });
 
@@ -128,4 +132,42 @@ test("releases just past the carousel edge to avoid abrupt page jumps", () => {
   const releasedBottom = releasedTop + 720;
 
   assert.equal(shouldEnterPinnedCarousel(releasedTop, releasedBottom, 720, true), false);
+});
+
+test("maps horizontal wheel input onto page scroll distance", () => {
+  assert.equal(
+    getPageSyncedHorizontalWheelDelta({ deltaX: 120, deltaY: 8, deltaMode: 0 }, 720),
+    162
+  );
+  assert.equal(
+    getPageSyncedHorizontalWheelDelta({ deltaX: 2, deltaY: 20, deltaMode: 0 }, 720),
+    0
+  );
+  assert.equal(
+    getPageSyncedHorizontalWheelDelta(
+      { deltaX: 0, deltaY: 4, deltaMode: 1, shiftKey: true },
+      720
+    ),
+    86.4
+  );
+  assert.equal(
+    getPageSyncedHorizontalWheelDelta({ deltaX: 1, deltaY: 0, deltaMode: 2 }, 720),
+    720
+  );
+  assert.equal(
+    getPageSyncedHorizontalWheelDelta({ ctrlKey: true, deltaX: 120, deltaY: 0 }, 720),
+    0
+  );
+});
+
+test("chooses the nearest visual project as the snap target", () => {
+  assert.equal(getPinnedCarouselSnapProgress(0.16, 3), 0);
+  assert.equal(getPinnedCarouselSnapProgress(0.25, 3), 0.5);
+  assert.equal(getPinnedCarouselSnapProgress(0.66, 3), 0.5);
+  assert.equal(getPinnedCarouselSnapProgress(0.75, 3), 1);
+});
+
+test("maps horizontal drag direction onto page scroll distance", () => {
+  assert.equal(getPageSyncedDragScrollDelta(300, 200), 180);
+  assert.equal(getPageSyncedDragScrollDelta(300, 400), -180);
 });

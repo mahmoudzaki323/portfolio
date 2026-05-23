@@ -74,7 +74,7 @@ export const projects: Project[] = [
     stats: [
       { label: "Custom forecasting", value: "Daily" },
       { label: "Operating signals", value: "9 inputs" },
-      { label: "Owner workflow", value: "Action cards" }
+      { label: "Pre-close fixes", value: "Action cards" }
     ],
     color: "#065f46",
     year: "2026",
@@ -98,7 +98,7 @@ export const projects: Project[] = [
       productHunt: "https://www.producthunt.com/products/nimbus-9?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-nimbus-1c165f5e-63f2-4444-9d1b-4fcf70998a35"
     },
     stats: [
-      { label: "AI Stages", value: "2" },
+      { label: "Context capture", value: "Workflow history" },
       { label: "MCP Tools", value: "7" },
       { label: "Platform", value: "macOS" }
     ],

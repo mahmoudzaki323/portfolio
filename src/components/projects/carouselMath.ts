@@ -1,10 +1,21 @@
 const TRANSITION_START = 0.5;
 const TRANSITION_END = 0.88;
-const PINNED_TRANSITION_START = 0.16;
-const PINNED_TRANSITION_END = 0.88;
+const PINNED_TRANSITION_START = 0.34;
+const PINNED_TRANSITION_END = 0.66;
 const PINNED_ENTRY_TOLERANCE = 64;
 const PINNED_RELEASE_NUDGE = PINNED_ENTRY_TOLERANCE + 2;
 const CAROUSEL_SCROLL_VH_PER_TRANSITION = 82;
+const WHEEL_LINE_DELTA_PX = 16;
+const HORIZONTAL_WHEEL_SCROLL_MULTIPLIER = 1.35;
+const HORIZONTAL_DRAG_SCROLL_MULTIPLIER = 1.8;
+
+type CarouselWheelDelta = {
+  ctrlKey?: boolean;
+  deltaMode?: number;
+  deltaX: number;
+  deltaY: number;
+  shiftKey?: boolean;
+};
 
 export function clampUnit(value: number) {
   return Math.min(Math.max(value, 0), 1);
@@ -163,4 +174,42 @@ export function getFeaturedCarouselHeight(slideCount = 1) {
   const transitionCount = Math.max(slideCount - 1, 1);
 
   return `calc(100dvh + ${transitionCount * CAROUSEL_SCROLL_VH_PER_TRANSITION}dvh)`;
+}
+
+export function getPinnedCarouselSnapProgress(progress: number, slideCount: number) {
+  if (slideCount <= 1) return 0;
+
+  const maxIndex = slideCount - 1;
+  const slideProgress = getPinnedCarouselSlideProgress(progress, slideCount);
+  const activeIndex = getActiveSlideIndex(slideProgress + Number.EPSILON, slideCount);
+
+  return activeIndex / maxIndex;
+}
+
+export function getPageSyncedHorizontalWheelDelta(
+  event: CarouselWheelDelta,
+  viewportHeight: number
+) {
+  if (event.ctrlKey) return 0;
+
+  const absX = Math.abs(event.deltaX);
+  const absY = Math.abs(event.deltaY);
+  const deltaMode = event.deltaMode ?? 0;
+  const multiplier =
+    deltaMode === 1 ? WHEEL_LINE_DELTA_PX : deltaMode === 2 ? Math.max(viewportHeight, 1) : 1;
+  const speedMultiplier = deltaMode === 2 ? 1 : HORIZONTAL_WHEEL_SCROLL_MULTIPLIER;
+
+  if (event.shiftKey && absY > absX) {
+    return event.deltaY * multiplier * speedMultiplier;
+  }
+
+  if (absX > absY) {
+    return event.deltaX * multiplier * speedMultiplier;
+  }
+
+  return 0;
+}
+
+export function getPageSyncedDragScrollDelta(startClientX: number, currentClientX: number) {
+  return (startClientX - currentClientX) * HORIZONTAL_DRAG_SCROLL_MULTIPLIER;
 }
