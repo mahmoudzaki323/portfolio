@@ -911,62 +911,6 @@ export const trips: Trip[] = [
             "date": "2025-09-06"
           }
         ]
-      },
-      {
-        "id": "chicago-dorhsvsjylz",
-        "title": "Summer Recap",
-        "description": "Loose summer fragments grouped into one last Chicago-era recap album.",
-        "coverImage": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-02.jpg",
-        "photos": [
-          {
-            "id": "dorhsvsjylz-2",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-02.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-02.jpg",
-            "caption": "Summer Recap · Frame 02",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          },
-          {
-            "id": "dorhsvsjylz-3",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-03.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-03.jpg",
-            "caption": "Summer Recap · Frame 03",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          },
-          {
-            "id": "dorhsvsjylz-7",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-07.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-07.jpg",
-            "caption": "Summer Recap · Frame 07",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          },
-          {
-            "id": "dorhsvsjylz-8",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-08.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-08.jpg",
-            "caption": "Summer Recap · Frame 08",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          },
-          {
-            "id": "dorhsvsjylz-10",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-10.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-10.jpg",
-            "caption": "Summer Recap · Frame 10",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          },
-          {
-            "id": "dorhsvsjylz-12",
-            "url": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-12.jpg",
-            "thumbnail": "/photography/instagram/chicago/2025-09-06-DORHSVsjYLZ-12.jpg",
-            "caption": "Summer Recap · Frame 12",
-            "location": "Chicago, Illinois",
-            "date": "2025-09-06"
-          }
-        ]
       }
     ],
     "color": "#ef476f"

@@ -207,11 +207,5 @@ export default {
       description: "Roadside Americana and car frames from the late-summer Midwest stretch.",
       locationName: "Chicago, Illinois",
     },
-    DORHSVsjYLZ: {
-      tripId: "chicago",
-      title: "Summer Recap",
-      description: "Loose summer fragments grouped into one last Chicago-era recap album.",
-      locationName: "Chicago, Illinois",
-    },
   },
 };
