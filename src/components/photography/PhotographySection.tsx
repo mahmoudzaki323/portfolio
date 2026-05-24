@@ -6,6 +6,17 @@ import { trips, type Trip } from "../../data/trips";
 
 const MOBILE_QUERY = "(max-width: 767px)";
 
+interface SelectionAnchor {
+  x: number;
+  y: number;
+}
+
+interface TripSelectOptions {
+  keepManualControl?: boolean;
+  anchor?: SelectionAnchor;
+  anchorMode?: "point" | "marker";
+}
+
 function getIsMobileViewport() {
   return typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches;
 }
@@ -33,9 +44,12 @@ export function PhotographySection() {
   const desktopRouteRailRef = useRef<HTMLDivElement>(null);
   const mobileRailRef = useRef<HTMLDivElement>(null);
   const focusTimeoutRef = useRef<number | null>(null);
+  const lastSelectionAnchorTimeRef = useRef(0);
 
   const [activeTrip, setActiveTrip] = useState<Trip | null>(trips[0] ?? null);
   const [focusedTripId, setFocusedTripId] = useState<string | null>(null);
+  const [selectionAnchor, setSelectionAnchor] = useState<SelectionAnchor | null>(null);
+  const [selectionAnchorMode, setSelectionAnchorMode] = useState<"point" | "marker" | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [earthLoaded, setEarthLoaded] = useState(false);
   const [currentTripIndex, setCurrentTripIndex] = useState(0);
@@ -107,6 +121,10 @@ export function PhotographySection() {
       return;
     }
 
+    if (selectionAnchor && selectionAnchorMode === "point" && focusedTripId === activeTrip?.id) {
+      return;
+    }
+
     if (!desktopRouteRailRef.current) return;
 
     const container = desktopRouteRailRef.current;
@@ -128,7 +146,7 @@ export function PhotographySection() {
       left: Math.max(0, Math.min(targetLeft, maxScrollLeft)),
       behavior: "smooth",
     });
-  }, [activeTrip, currentTripIndex, focusedTripId, isMobile]);
+  }, [activeTrip, currentTripIndex, focusedTripId, isMobile, selectionAnchor, selectionAnchorMode]);
 
   const clearFocusTimeout = useCallback(() => {
     if (focusTimeoutRef.current !== null) {
@@ -138,12 +156,26 @@ export function PhotographySection() {
   }, []);
 
   const handleTripSelect = useCallback(
-    (tripId: string) => {
+    (tripId: string, options?: TripSelectOptions) => {
       const trip = trips.find((item) => item.id === tripId);
       if (!trip) return;
 
       clearFocusTimeout();
-      setIsManualGlobeControlActive(false);
+      if (!options?.keepManualControl) {
+        setIsManualGlobeControlActive(false);
+      }
+      if (!isMobile && options?.anchor) {
+        lastSelectionAnchorTimeRef.current = performance.now();
+        setSelectionAnchor(options.anchor);
+        setSelectionAnchorMode(options.anchorMode ?? "point");
+      } else if (!isMobile && options?.anchorMode === "marker") {
+        lastSelectionAnchorTimeRef.current = performance.now();
+        setSelectionAnchor(null);
+        setSelectionAnchorMode("marker");
+      } else if (!isMobile) {
+        setSelectionAnchor(null);
+        setSelectionAnchorMode(null);
+      }
       setFocusedTripId(tripId);
       setActiveTrip(trip);
       setCameraFocusKey((key) => key + 1);
@@ -154,16 +186,28 @@ export function PhotographySection() {
         setScrollProgress(0);
       }
 
-      if (isMobile) {
-        return;
-      }
-
-      focusTimeoutRef.current = window.setTimeout(() => {
-        setFocusedTripId(null);
-        focusTimeoutRef.current = null;
-      }, 2500);
+      if (isMobile) return;
     },
     [clearFocusTimeout, isMobile, setIsManualGlobeControlActive]
+  );
+
+  const handleActiveTripAnchorChange = useCallback(
+    (anchor: SelectionAnchor) => {
+      if (isMobile || selectionAnchorMode !== "marker") return;
+
+      setSelectionAnchor((currentAnchor) => {
+        if (
+          currentAnchor &&
+          Math.abs(currentAnchor.x - anchor.x) < 1 &&
+          Math.abs(currentAnchor.y - anchor.y) < 1
+        ) {
+          return currentAnchor;
+        }
+
+        return anchor;
+      });
+    },
+    [isMobile, selectionAnchorMode]
   );
 
   const handleGalleryOpen = useCallback(() => {
@@ -178,7 +222,25 @@ export function PhotographySection() {
     setIsGalleryOpen(false);
     clearFocusTimeout();
     setFocusedTripId(null);
+    setSelectionAnchor(null);
+    setSelectionAnchorMode(null);
   }, [clearFocusTimeout]);
+
+  useEffect(() => {
+    if (!selectionAnchor || isMobile) return;
+
+    const hideSelectionOnScroll = () => {
+      if (performance.now() - lastSelectionAnchorTimeRef.current < 180) return;
+
+      clearFocusTimeout();
+      setFocusedTripId(null);
+      setSelectionAnchor(null);
+      setSelectionAnchorMode(null);
+    };
+
+    window.addEventListener("scroll", hideSelectionOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", hideSelectionOnScroll);
+  }, [clearFocusTimeout, isMobile, selectionAnchor]);
 
   useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
@@ -243,10 +305,13 @@ export function PhotographySection() {
             cameraFocusKey={cameraFocusKey}
             desktopRouteRailRef={desktopRouteRailRef}
             visibleLabelId={visibleLabelId}
+            isSelectionCardVisible={focusedTripId === activeTrip?.id && Boolean(selectionAnchor)}
+            selectionAnchor={selectionAnchor}
             isManualGlobeControlActive={isManualGlobeControlActive}
             canGoPrevious={canGoPrevious}
             canGoNext={canGoNext}
             onEarthLoad={() => setEarthLoaded(true)}
+            onActiveTripAnchorChange={handleActiveTripAnchorChange}
             onManualGlobeControlStart={handleManualGlobeControlStart}
             onManualGlobeControlEnd={handleManualGlobeControlEnd}
             onTripSelect={handleTripSelect}

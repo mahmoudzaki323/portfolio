@@ -1,5 +1,5 @@
-import { useState, useCallback, Suspense, useEffect } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { useState, useCallback, Suspense, useEffect, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, useProgress } from "@react-three/drei";
 import * as THREE from "three";
 import { Earth } from "./Earth";
@@ -7,7 +7,17 @@ import { Atmosphere } from "./Atmosphere";
 import { LocationMarkers } from "./LocationMarkers";
 import { RouteArcs } from "./RouteArcs";
 import { CameraController } from "./CameraController";
+import { latLngToVector3 } from "../../lib/utils";
 import { trips, type Trip } from "../../data/trips";
+
+interface TripSelectOptions {
+  keepManualControl?: boolean;
+  anchor?: {
+    x: number;
+    y: number;
+  };
+  anchorMode?: "point" | "marker";
+}
 
 interface EarthSceneProps {
   activeTrip?: Trip | null;
@@ -15,7 +25,8 @@ interface EarthSceneProps {
   currentTripIndex?: number;
   scrollProgress?: number;
   visibleLabelId?: string | null;
-  onTripSelect?: (tripId: string) => void;
+  onTripSelect?: (tripId: string, options?: TripSelectOptions) => void;
+  onActiveTripAnchorChange?: (anchor: { x: number; y: number }) => void;
   onLoad?: () => void;
   isManualControlActive?: boolean;
   onManualControlStart?: () => void;
@@ -39,10 +50,69 @@ function Loader({ onLoad }: { onLoad?: () => void }) {
   return null;
 }
 
+function ActiveTripScreenAnchor({
+  trip,
+  radius,
+  onActiveTripAnchorChange,
+}: {
+  trip?: Trip | null;
+  radius: number;
+  onActiveTripAnchorChange?: (anchor: { x: number; y: number }) => void;
+}) {
+  const { camera, gl } = useThree();
+  const lastAnchorRef = useRef<{ x: number; y: number; tripId: string } | null>(null);
+
+  useEffect(() => {
+    lastAnchorRef.current = null;
+  }, [trip?.id]);
+
+  useFrame(() => {
+    if (!trip || !onActiveTripAnchorChange) return;
+
+    const markerPoint = latLngToVector3(
+      trip.coordinates.lat,
+      trip.coordinates.lng,
+      radius * 1.04
+    );
+    const projected = new THREE.Vector3(markerPoint.x, markerPoint.y, markerPoint.z).project(camera);
+
+    if (projected.z < -1 || projected.z > 1) return;
+
+    const bounds = gl.domElement.getBoundingClientRect();
+    const x = bounds.left + (projected.x * 0.5 + 0.5) * bounds.width;
+    const y = bounds.top + (-projected.y * 0.5 + 0.5) * bounds.height;
+
+    if (x < 12 || x > window.innerWidth - 12 || y < 12 || y > window.innerHeight - 12) {
+      return;
+    }
+
+    const lastAnchor = lastAnchorRef.current;
+    if (
+      lastAnchor &&
+      lastAnchor.tripId === trip.id &&
+      Math.abs(lastAnchor.x - x) < 1 &&
+      Math.abs(lastAnchor.y - y) < 1
+    ) {
+      return;
+    }
+
+    lastAnchorRef.current = { x, y, tripId: trip.id };
+    onActiveTripAnchorChange({ x, y });
+  });
+
+  return null;
+}
+
 function ManualGlobeControls({
+  trips,
+  radius,
+  onTripSelect,
   onManualControlStart,
   onManualControlEnd,
 }: {
+  trips: Trip[];
+  radius: number;
+  onTripSelect?: (tripId: string, options?: TripSelectOptions) => void;
   onManualControlStart?: () => void;
   onManualControlEnd?: () => void;
 }) {
@@ -60,6 +130,52 @@ function ManualGlobeControls({
       radius: 0,
       dragging: false,
     };
+    let lastPickedTripId: string | null = null;
+    let lastPickedAnchor: TripSelectOptions["anchor"] | null = null;
+
+    const pickTripAtPointer = (event: PointerEvent) => {
+      if (!onTripSelect) return;
+
+      const bounds = element.getBoundingClientRect();
+      const pointerX = event.clientX - bounds.left;
+      const pointerY = event.clientY - bounds.top;
+      let closestTripId: string | null = null;
+      let closestDistance = Infinity;
+
+      trips.forEach((trip) => {
+        const markerPoint = latLngToVector3(
+          trip.coordinates.lat,
+          trip.coordinates.lng,
+          radius * 1.01
+        );
+        const markerPosition = new THREE.Vector3(
+          markerPoint.x,
+          markerPoint.y,
+          markerPoint.z
+        );
+        const projected = markerPosition.clone().project(camera);
+
+        if (projected.z < -1 || projected.z > 1) return;
+
+        const screenX = (projected.x * 0.5 + 0.5) * bounds.width;
+        const screenY = (-projected.y * 0.5 + 0.5) * bounds.height;
+        const distance = Math.hypot(screenX - pointerX, screenY - pointerY);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestTripId = trip.id;
+        }
+      });
+
+      if (!closestTripId || closestDistance > 28 || closestTripId === lastPickedTripId) return;
+
+      lastPickedTripId = closestTripId;
+      lastPickedAnchor = { x: event.clientX, y: event.clientY };
+      onTripSelect(closestTripId, {
+        keepManualControl: true,
+        anchor: lastPickedAnchor,
+      });
+    };
 
     const handlePointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
@@ -74,6 +190,8 @@ function ManualGlobeControls({
       start.phi = spherical.phi;
       start.radius = spherical.radius;
       start.dragging = true;
+      lastPickedTripId = null;
+      lastPickedAnchor = null;
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -89,6 +207,7 @@ function ManualGlobeControls({
       spherical.set(start.radius, nextPhi, nextTheta);
       camera.position.copy(new THREE.Vector3().setFromSpherical(spherical).add(target));
       camera.lookAt(target);
+      pickTripAtPointer(event);
     };
 
     const handlePointerEnd = (event: PointerEvent) => {
@@ -96,6 +215,9 @@ function ManualGlobeControls({
       start.dragging = false;
       if (element.hasPointerCapture(event.pointerId)) {
         element.releasePointerCapture(event.pointerId);
+      }
+      if (lastPickedTripId) {
+        onTripSelect?.(lastPickedTripId, lastPickedAnchor ? { anchor: lastPickedAnchor } : undefined);
       }
       onManualControlEnd?.();
     };
@@ -111,7 +233,7 @@ function ManualGlobeControls({
       element.removeEventListener("pointerup", handlePointerEnd);
       element.removeEventListener("pointercancel", handlePointerEnd);
     };
-  }, [camera, gl, onManualControlEnd, onManualControlStart]);
+  }, [camera, gl, onManualControlEnd, onManualControlStart, onTripSelect, radius, trips]);
 
   return null;
 }
@@ -121,6 +243,7 @@ function Scene({
   isOverview = true,
   currentTripIndex = 0,
   onTripSelect,
+  onActiveTripAnchorChange,
   onLoad,
   isManualControlActive = false,
   onManualControlStart,
@@ -188,8 +311,17 @@ function Scene({
         focusKey={focusKey}
       />
 
+      <ActiveTripScreenAnchor
+        trip={activeTrip}
+        radius={RADIUS}
+        onActiveTripAnchorChange={onActiveTripAnchorChange}
+      />
+
       {manualControlsEnabled && (
         <ManualGlobeControls
+          trips={trips}
+          radius={RADIUS}
+          onTripSelect={onTripSelect}
           onManualControlStart={onManualControlStart}
           onManualControlEnd={onManualControlEnd}
         />
@@ -203,6 +335,7 @@ export function EarthScene({
   isOverview,
   currentTripIndex,
   onTripSelect,
+  onActiveTripAnchorChange,
   onLoad,
   isManualControlActive,
   onManualControlStart,
@@ -245,6 +378,7 @@ export function EarthScene({
             isOverview={isOverview}
             currentTripIndex={currentTripIndex}
             onTripSelect={onTripSelect}
+            onActiveTripAnchorChange={onActiveTripAnchorChange}
             onLoad={handleLoad}
             isManualControlActive={isManualControlActive}
             onManualControlStart={onManualControlStart}

@@ -8,7 +8,7 @@ interface LocationMarkerProps {
   trip: Trip;
   radius: number;
   isActive: boolean;
-  onClick: () => void;
+  onClick: (anchor?: { x: number; y: number }) => void;
 }
 
 function LocationMarker({ trip, radius, isActive, onClick }: LocationMarkerProps) {
@@ -26,11 +26,20 @@ function LocationMarker({ trip, radius, isActive, onClick }: LocationMarkerProps
         renderOrder={5}
         onClick={(e) => {
           e.stopPropagation();
-          onClick();
+          onClick({ x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
           document.body.style.cursor = "pointer";
+          if (e.nativeEvent.buttons === 1) {
+            onClick({ x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
+          }
+        }}
+        onPointerMove={(e) => {
+          e.stopPropagation();
+          if (e.nativeEvent.buttons === 1) {
+            onClick({ x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
+          }
         }}
         onPointerOut={() => {
           document.body.style.cursor = "auto";
@@ -74,7 +83,14 @@ interface LocationMarkersProps {
   trips: Trip[];
   radius?: number;
   activeTripId?: string | null;
-  onTripSelect?: (tripId: string) => void;
+  onTripSelect?: (
+    tripId: string,
+    options?: {
+      anchor?: { x: number; y: number };
+      anchorMode?: "point" | "marker";
+      keepManualControl?: boolean;
+    }
+  ) => void;
 }
 
 export function LocationMarkers({
@@ -84,8 +100,8 @@ export function LocationMarkers({
   onTripSelect,
 }: LocationMarkersProps) {
   const handleMarkerClick = useCallback(
-    (tripId: string) => {
-      onTripSelect?.(tripId);
+    (tripId: string, anchor?: { x: number; y: number }) => {
+      onTripSelect?.(tripId, anchor ? { anchor } : undefined);
     },
     [onTripSelect]
   );
@@ -98,7 +114,7 @@ export function LocationMarkers({
           trip={trip}
           radius={radius}
           isActive={trip.id === activeTripId}
-          onClick={() => handleMarkerClick(trip.id)}
+          onClick={(anchor) => handleMarkerClick(trip.id, anchor)}
         />
       ))}
     </group>

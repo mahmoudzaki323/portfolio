@@ -1,10 +1,15 @@
-import type { RefObject } from "react";
+import {
+  useCallback,
+  useRef,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type RefObject,
+} from "react";
 import {
   ArrowUpRight,
   Camera,
   ChevronLeft,
   ChevronRight,
-  Images,
   MapPin,
   Play,
 } from "lucide-react";
@@ -17,6 +22,17 @@ interface PhotographyTotals {
   frames: number;
 }
 
+interface SelectionAnchor {
+  x: number;
+  y: number;
+}
+
+interface TripSelectOptions {
+  keepManualControl?: boolean;
+  anchor?: SelectionAnchor;
+  anchorMode?: "point" | "marker";
+}
+
 interface PhotographyDesktopExperienceProps {
   trips?: Trip[];
   hasTrips: boolean;
@@ -27,13 +43,16 @@ interface PhotographyDesktopExperienceProps {
   cameraFocusKey: number;
   desktopRouteRailRef: RefObject<HTMLDivElement | null>;
   visibleLabelId?: string | null;
+  isSelectionCardVisible?: boolean;
+  selectionAnchor?: SelectionAnchor | null;
   isManualGlobeControlActive?: boolean;
   canGoPrevious: boolean;
   canGoNext: boolean;
   onEarthLoad?: () => void;
+  onActiveTripAnchorChange?: (anchor: SelectionAnchor) => void;
   onManualGlobeControlStart?: () => void;
   onManualGlobeControlEnd?: () => void;
-  onTripSelect: (tripId: string) => void;
+  onTripSelect: (tripId: string, options?: TripSelectOptions) => void;
   onPreviousDestination: () => void;
   onNextDestination: () => void;
   onGalleryOpen: () => void;
@@ -61,10 +80,13 @@ export function PhotographyDesktopExperience({
   cameraFocusKey,
   desktopRouteRailRef,
   visibleLabelId,
+  isSelectionCardVisible = false,
+  selectionAnchor = null,
   isManualGlobeControlActive = false,
   canGoPrevious,
   canGoNext,
   onEarthLoad,
+  onActiveTripAnchorChange,
   onManualGlobeControlStart,
   onManualGlobeControlEnd,
   onTripSelect,
@@ -82,6 +104,184 @@ export function PhotographyDesktopExperience({
     : 0;
   const selectedFrameCount = activeTrip ? frameCountForTrip(activeTrip) : 0;
   const albumCount = activeTrip?.albums.length ?? 0;
+  const popupWidth = 256;
+  const popupHeight = 70;
+  const popupGap = 10;
+  const popupTopInset = 96;
+  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
+  const popupLeft = selectionAnchor
+    ? Math.min(
+        viewportWidth - popupWidth / 2 - 16,
+        Math.max(popupWidth / 2 + 16, selectionAnchor.x)
+      )
+    : 0;
+  const popupTop = selectionAnchor
+    ? Math.max(popupTopInset + popupHeight + popupGap, selectionAnchor.y)
+    : 0;
+  const railDragStateRef = useRef({
+    isDragging: false,
+    startX: 0,
+    lastX: 0,
+    hasMoved: false,
+    lastTripId: null as string | null,
+  });
+  const suppressRailClickRef = useRef(false);
+
+  const centerRailItem = useCallback(
+    (tripId: string) => {
+      const rail = desktopRouteRailRef.current;
+      if (!rail) return;
+
+      const railItem = rail.querySelector<HTMLElement>(
+        `[data-desktop-trip-id="${tripId}"]`
+      );
+      if (!railItem) return;
+
+      const railRect = rail.getBoundingClientRect();
+      const railItemRect = railItem.getBoundingClientRect();
+      const targetLeft =
+        rail.scrollLeft +
+        railItemRect.left -
+        railRect.left -
+        (rail.clientWidth - railItemRect.width) / 2;
+      const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+
+      rail.scrollTo({
+        left: Math.max(0, Math.min(targetLeft, maxScrollLeft)),
+        behavior: "smooth",
+      });
+    },
+    [desktopRouteRailRef]
+  );
+
+  const selectTripFromRailPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const rail = desktopRouteRailRef.current;
+      if (!rail) return;
+
+      const railRect = rail.getBoundingClientRect();
+      if (clientY < railRect.top - 14 || clientY > railRect.bottom + 14) return;
+
+      const railItems = Array.from(
+        rail.querySelectorAll<HTMLElement>("[data-desktop-trip-id]")
+      );
+      if (railItems.length === 0) return;
+
+      const pointedElement = document.elementFromPoint(clientX, clientY);
+      const directRailItem =
+        pointedElement instanceof Element
+          ? pointedElement.closest<HTMLElement>("[data-desktop-trip-id]")
+          : null;
+      const selectedItem =
+        directRailItem && rail.contains(directRailItem)
+          ? directRailItem
+          : railItems.reduce((closestItem, item) => {
+              const itemRect = item.getBoundingClientRect();
+              const itemCenter = itemRect.left + itemRect.width / 2;
+              const closestRect = closestItem.getBoundingClientRect();
+              const closestCenter = closestRect.left + closestRect.width / 2;
+
+              return Math.abs(itemCenter - clientX) < Math.abs(closestCenter - clientX)
+                ? item
+                : closestItem;
+            }, railItems[0]);
+
+      const tripId = selectedItem.dataset.desktopTripId;
+      if (!tripId) return;
+
+      const dragState = railDragStateRef.current;
+      if (tripId === dragState.lastTripId) return;
+
+      dragState.lastTripId = tripId;
+      onTripSelect(tripId, { anchorMode: "marker" });
+    },
+    [desktopRouteRailRef, onTripSelect]
+  );
+
+  const handleRailButtonClick = useCallback(
+    (_event: ReactMouseEvent<HTMLButtonElement>, tripId: string) => {
+      centerRailItem(tripId);
+      onTripSelect(tripId, { anchorMode: "marker" });
+    },
+    [centerRailItem, onTripSelect]
+  );
+
+  const handleRailPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (event.button !== 0) return;
+
+      const rail = desktopRouteRailRef.current;
+      if (!rail) return;
+
+      railDragStateRef.current = {
+        isDragging: true,
+        startX: event.clientX,
+        lastX: event.clientX,
+        hasMoved: false,
+        lastTripId: activeTrip?.id ?? null,
+      };
+      suppressRailClickRef.current = false;
+      rail.setPointerCapture(event.pointerId);
+      selectTripFromRailPoint(event.clientX, event.clientY);
+    },
+    [activeTrip?.id, desktopRouteRailRef, selectTripFromRailPoint]
+  );
+
+  const handleRailPointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const dragState = railDragStateRef.current;
+      if (!dragState.isDragging) return;
+
+      const rail = desktopRouteRailRef.current;
+      if (!rail) return;
+
+      const deltaX = event.clientX - dragState.lastX;
+      rail.scrollLeft -= deltaX;
+      dragState.lastX = event.clientX;
+
+      if (Math.abs(event.clientX - dragState.startX) > 4) {
+        dragState.hasMoved = true;
+        suppressRailClickRef.current = true;
+      }
+
+      selectTripFromRailPoint(event.clientX, event.clientY);
+      event.preventDefault();
+    },
+    [desktopRouteRailRef, selectTripFromRailPoint]
+  );
+
+  const handleRailPointerEnd = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      const dragState = railDragStateRef.current;
+      if (!dragState.isDragging) return;
+
+      const rail = desktopRouteRailRef.current;
+      dragState.isDragging = false;
+
+      if (rail?.hasPointerCapture(event.pointerId)) {
+        rail.releasePointerCapture(event.pointerId);
+      }
+
+      selectTripFromRailPoint(event.clientX, event.clientY);
+      if (dragState.lastTripId) {
+        centerRailItem(dragState.lastTripId);
+      }
+
+      if (dragState.hasMoved) {
+        window.setTimeout(() => {
+          suppressRailClickRef.current = false;
+        }, 0);
+      }
+    },
+    [centerRailItem, desktopRouteRailRef, selectTripFromRailPoint]
+  );
+
+  const handleRailClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!suppressRailClickRef.current) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
 
   return (
     <>
@@ -93,6 +293,7 @@ export function PhotographyDesktopExperience({
           scrollProgress={scrollProgress}
           visibleLabelId={visibleLabelId}
           onTripSelect={onTripSelect}
+          onActiveTripAnchorChange={onActiveTripAnchorChange}
           onLoad={onEarthLoad}
           isManualControlActive={isManualGlobeControlActive}
           onManualControlStart={onManualGlobeControlStart}
@@ -107,6 +308,45 @@ export function PhotographyDesktopExperience({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-44 bg-gradient-to-t from-background/95 via-background/54 to-transparent" />
 
       <div className="pointer-events-none relative z-20 mx-auto h-full max-w-site px-5 pt-28 md:px-8">
+        {activeTrip && isSelectionCardVisible && selectionAnchor ? (
+          <div
+            className="pointer-events-auto fixed z-40 w-64 -translate-x-1/2 -translate-y-[calc(100%+0.625rem)]"
+            style={{ left: popupLeft, top: popupTop }}
+          >
+            <div className="glass-panel relative border border-white/10 bg-background/82 p-2 shadow-2xl shadow-background/45 backdrop-blur-xl">
+              <div className="absolute bottom-[-5px] left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border-b border-r border-white/10 bg-background/82" />
+              <div className="relative flex items-center gap-2.5">
+                <img
+                  src={activeTrip.thumbnail}
+                  alt={`${activeTrip.name} photography thumbnail`}
+                  className="h-10 w-10 shrink-0 border border-line object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="eyebrow text-accent">Location</p>
+                  <h3 className="mt-0.5 truncate text-sm font-semibold leading-tight text-primary">
+                    {activeTrip.name}
+                  </h3>
+                  <p className="truncate text-[10px] text-secondary">
+                    {pluralize(albumCount, "album")} / {selectedFrameCount} frames
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onGalleryOpen}
+                  aria-label={`Open ${activeTrip.name} gallery`}
+                  className="focus-ring inline-flex h-8 shrink-0 items-center gap-1 border border-accent/60 bg-accent/14 px-2 text-[11px] font-semibold text-accent transition duration-300 hover:bg-accent hover:text-accent-foreground active:translate-y-px"
+                >
+                  Open
+                  <ArrowUpRight className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <div className="pointer-events-auto flex items-start justify-between gap-4">
           <div className="glass-panel inline-flex max-w-[28rem] items-center gap-3 px-3 py-2">
             <Camera className="h-4 w-4 shrink-0 text-accent" />
@@ -133,7 +373,7 @@ export function PhotographyDesktopExperience({
 
         <div className="pointer-events-auto absolute inset-x-5 bottom-5 mx-auto max-w-site md:inset-x-8 md:bottom-6">
           <section className="glass-panel overflow-hidden p-3">
-            <div className="grid items-center gap-3 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)_minmax(13rem,18rem)]">
+            <div className="grid items-center gap-3 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex shrink-0 items-center gap-2">
                   <button
@@ -200,9 +440,14 @@ export function PhotographyDesktopExperience({
 
                 <div
                   ref={desktopRouteRailRef}
-                  className="no-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto"
+                  className="no-scrollbar flex cursor-grab snap-x snap-mandatory select-none gap-2 overflow-x-auto active:cursor-grabbing"
                   onWheelCapture={(event) => event.stopPropagation()}
                   onTouchMoveCapture={(event) => event.stopPropagation()}
+                  onPointerDown={handleRailPointerDown}
+                  onPointerMove={handleRailPointerMove}
+                  onPointerUp={handleRailPointerEnd}
+                  onPointerCancel={handleRailPointerEnd}
+                  onClickCapture={handleRailClickCapture}
                 >
                   {hasTrips ? (
                     trips.map((trip, index) => {
@@ -214,7 +459,8 @@ export function PhotographyDesktopExperience({
                           key={trip.id}
                           type="button"
                           data-desktop-trip-index={index}
-                          onClick={() => onTripSelect(trip.id)}
+                          data-desktop-trip-id={trip.id}
+                          onClick={(event) => handleRailButtonClick(event, trip.id)}
                           className={cn(
                             "focus-ring group flex h-12 min-w-[10rem] snap-center items-center gap-2 border px-2 text-left transition duration-300 active:translate-y-px",
                             isActive
@@ -228,6 +474,7 @@ export function PhotographyDesktopExperience({
                             className="h-8 w-8 shrink-0 border border-line object-cover transition duration-500 group-hover:scale-[1.04]"
                             loading="lazy"
                             decoding="async"
+                            draggable={false}
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -249,36 +496,11 @@ export function PhotographyDesktopExperience({
                 </div>
               </div>
 
-              {activeTrip ? (
-                <button
-                  type="button"
-                  onClick={onGalleryOpen}
-                  className="focus-ring group flex min-h-16 items-center justify-between gap-3 border border-line bg-surface/70 px-3 py-2 text-left transition duration-300 hover:border-accent active:translate-y-px"
-                >
-                  <div className="min-w-0">
-                    <p className="eyebrow text-accent">Album</p>
-                    <p className="mt-1 truncate text-sm font-semibold text-primary">
-                      {pluralize(albumCount, "album")} / {selectedFrameCount} frames
-                    </p>
-                    {albumCount > 1 ? (
-                      <p className="mt-0.5 truncate text-[11px] text-secondary">
-                        Includes {activeTrip.albums.map((album) => album.title).slice(0, 2).join(", ")}
-                      </p>
-                    ) : (
-                      <p className="mt-0.5 truncate text-[11px] text-secondary">
-                        {activeTrip.albums[0]?.title ?? activeTrip.name}
-                      </p>
-                    )}
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-accent">
-                    <Images className="h-4 w-4" />
-                    Open
-                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </span>
-                </button>
-              ) : (
-                <div className="border border-line bg-surface/60 p-3 text-sm text-secondary">No destination selected.</div>
-              )}
+              {!activeTrip ? (
+                <div className="border border-line bg-surface/60 p-3 text-sm text-secondary lg:col-span-2">
+                  No destination selected.
+                </div>
+              ) : null}
             </div>
 
             {activeTrip ? (
