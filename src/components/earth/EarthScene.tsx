@@ -20,6 +20,10 @@ interface EarthSceneProps {
   isManualControlActive?: boolean;
   onManualControlStart?: () => void;
   onManualControlEnd?: () => void;
+  manualControlsEnabled?: boolean;
+  holdFocus?: boolean;
+  freeExploreMode?: boolean;
+  focusKey?: number;
 }
 
 function Loader({ onLoad }: { onLoad?: () => void }) {
@@ -121,6 +125,10 @@ function Scene({
   isManualControlActive = false,
   onManualControlStart,
   onManualControlEnd,
+  manualControlsEnabled = true,
+  holdFocus = false,
+  freeExploreMode = false,
+  focusKey = 0,
 }: EarthSceneProps) {
   const RADIUS = 2;
 
@@ -175,12 +183,17 @@ function Scene({
         trips={trips}
         radius={RADIUS}
         isManualControlActive={isManualControlActive}
+        holdTarget={holdFocus}
+        freeExploreMode={freeExploreMode}
+        focusKey={focusKey}
       />
 
-      <ManualGlobeControls
-        onManualControlStart={onManualControlStart}
-        onManualControlEnd={onManualControlEnd}
-      />
+      {manualControlsEnabled && (
+        <ManualGlobeControls
+          onManualControlStart={onManualControlStart}
+          onManualControlEnd={onManualControlEnd}
+        />
+      )}
     </>
   );
 }
@@ -194,6 +207,10 @@ export function EarthScene({
   isManualControlActive,
   onManualControlStart,
   onManualControlEnd,
+  manualControlsEnabled,
+  holdFocus,
+  freeExploreMode,
+  focusKey,
 }: EarthSceneProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
@@ -232,6 +249,10 @@ export function EarthScene({
             isManualControlActive={isManualControlActive}
             onManualControlStart={onManualControlStart}
             onManualControlEnd={onManualControlEnd}
+            manualControlsEnabled={manualControlsEnabled}
+            holdFocus={holdFocus}
+            freeExploreMode={freeExploreMode}
+            focusKey={focusKey}
           />
         </Suspense>
       </Canvas>

@@ -1266,6 +1266,12 @@
     background: var(--map-scrim);
   }
 
+  .mobile-map-scrim {
+    background:
+      linear-gradient(180deg, rgba(11, 11, 9, 0.22) 0%, rgba(11, 11, 9, 0.04) 34%, rgba(11, 11, 9, 0.88) 100%),
+      radial-gradient(circle at 50% 42%, transparent 0%, transparent 42%, rgba(11, 11, 9, 0.58) 78%);
+  }
+
   .globe-interaction-layer canvas {
     touch-action: pan-y;
   }

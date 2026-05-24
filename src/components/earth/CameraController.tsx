@@ -11,6 +11,9 @@ interface CameraControllerProps {
   trips?: Trip[];
   radius?: number;
   isManualControlActive?: boolean;
+  holdTarget?: boolean;
+  freeExploreMode?: boolean;
+  focusKey?: number;
 }
 
 // Smooth easing functions
@@ -27,6 +30,9 @@ export function CameraController({
   trips = [],
   radius = 2,
   isManualControlActive = false,
+  holdTarget = false,
+  freeExploreMode = false,
+  focusKey = 0,
 }: CameraControllerProps) {
   const { camera } = useThree();
 
@@ -50,6 +56,7 @@ export function CameraController({
   // Click-to-zoom state
   const isClickZoomed = useRef(false);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasManualControlActive = useRef(false);
 
   // Calculate camera position for a single location (zoomed in view)
   const getLocationCamera = (trip: Trip, distance: number, elevation: number, r: number) => {
@@ -167,6 +174,7 @@ export function CameraController({
       duration: 1.2,
       ease: "power2.inOut",
       onComplete: () => {
+        if (holdTarget) return;
         clickTimeoutRef.current = setTimeout(() => {
           isClickZoomed.current = false;
         }, 2000);
@@ -176,7 +184,18 @@ export function CameraController({
     return () => {
       if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     };
-  }, [targetTrip]);
+  }, [targetTrip, holdTarget, focusKey]);
+
+  useEffect(() => {
+    if (isManualControlActive) {
+      wasManualControlActive.current = true;
+      return;
+    }
+
+    if (!wasManualControlActive.current) return;
+    wasManualControlActive.current = false;
+    isClickZoomed.current = false;
+  }, [isManualControlActive]);
 
   // MAIN ANIMATION LOOP
   // Reads directly from global scroll state for immediate updates
@@ -190,6 +209,10 @@ export function CameraController({
     if (isClickZoomed.current) {
       camera.position.copy(smoothPosition.current);
       camera.lookAt(smoothLookAt.current);
+      return;
+    }
+
+    if (freeExploreMode) {
       return;
     }
 

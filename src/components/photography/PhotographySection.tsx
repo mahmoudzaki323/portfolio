@@ -1,32 +1,38 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ArrowUpRight, Camera, Globe2, Images, Map } from "lucide-react";
-import { EarthScene } from "../earth/EarthScene";
-import { TripCard } from "./TripCard";
 import { AlbumGallery } from "./AlbumGallery";
+import { PhotographyDesktopExperience } from "./PhotographyDesktopExperience";
+import { PhotographyMobileExperience } from "./PhotographyMobileExperience";
 import { trips, type Trip } from "../../data/trips";
-import { updateScrollState } from "../../lib/scrollState";
 
-gsap.registerPlugin(ScrollTrigger);
+const MOBILE_QUERY = "(max-width: 767px)";
 
-const ROUTE_SCROLL_VH_PER_SEGMENT = 72;
+function getIsMobileViewport() {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches;
+}
 
-function coordinateLabel(value: number, positive: string, negative: string) {
-  return `${Math.abs(value).toFixed(4)} ${value >= 0 ? positive : negative}`;
+function useIsMobileViewport() {
+  const [isMobile, setIsMobile] = useState(getIsMobileViewport);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_QUERY);
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  return isMobile;
 }
 
 export function PhotographySection() {
   const hasTrips = trips.length > 0;
+  const isMobile = useIsMobileViewport();
   const sectionRef = useRef<HTMLElement>(null);
-  const cardsContainerRef = useRef<HTMLDivElement>(null);
-  const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const desktopRouteRailRef = useRef<HTMLDivElement>(null);
+  const mobileRailRef = useRef<HTMLDivElement>(null);
   const focusTimeoutRef = useRef<number | null>(null);
-  const lastScrollUiStateRef = useRef({
-    currentTripIndex: 0,
-    scrollProgress: 0,
-    activeTripId: trips[0]?.id ?? null,
-  });
 
   const [activeTrip, setActiveTrip] = useState<Trip | null>(trips[0] ?? null);
   const [focusedTripId, setFocusedTripId] = useState<string | null>(null);
@@ -34,13 +40,9 @@ export function PhotographySection() {
   const [earthLoaded, setEarthLoaded] = useState(false);
   const [currentTripIndex, setCurrentTripIndex] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [isGlobeHintDismissed, setIsGlobeHintDismissed] = useState(false);
+  const [cameraFocusKey, setCameraFocusKey] = useState(0);
   const [isManualGlobeControlActive, setIsManualGlobeControlActiveState] = useState(false);
-  const globeHintDismissedRef = useRef(false);
   const manualGlobeControlRef = useRef(false);
-
-  const focusedTripIdRef = useRef(focusedTripId);
-  const isGalleryOpenRef = useRef(isGalleryOpen);
 
   const setIsManualGlobeControlActive = useCallback((value: boolean) => {
     if (manualGlobeControlRef.current === value) return;
@@ -50,10 +52,6 @@ export function PhotographySection() {
 
   const handleManualGlobeControlStart = useCallback(() => {
     setIsManualGlobeControlActive(true);
-    if (!globeHintDismissedRef.current) {
-      globeHintDismissedRef.current = true;
-      setIsGlobeHintDismissed(true);
-    }
   }, [setIsManualGlobeControlActive]);
 
   const handleManualGlobeControlEnd = useCallback(() => {
@@ -80,100 +78,57 @@ export function PhotographySection() {
     return null;
   }, [hasTrips, scrollProgress, currentTripIndex]);
 
-  const isZoomedIn = hasTrips && (focusedTripId !== null || scrollProgress < 0.22 || scrollProgress > 0.78);
-
   useEffect(() => {
-    focusedTripIdRef.current = focusedTripId;
-  }, [focusedTripId]);
-
-  useEffect(() => {
-    isGalleryOpenRef.current = isGalleryOpen;
-  }, [isGalleryOpen]);
-
-  useEffect(() => {
-    if (!sectionRef.current || !hasTrips) return;
-
-    ScrollTrigger.defaults({ markers: false });
-    scrollTriggerRef.current?.kill();
-    let resizeFrame = 0;
-
-    const totalTrips = trips.length;
-    const segmentCount = Math.max(totalTrips - 1, 1);
-
-    scrollTriggerRef.current = ScrollTrigger.create({
-      trigger: sectionRef.current,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: 0.12,
-      onUpdate: (self) => {
-        const progress = self.progress;
-        updateScrollState(progress, segmentCount);
-
-        if (manualGlobeControlRef.current) {
-          setIsManualGlobeControlActive(false);
-        }
-
-        if (!globeHintDismissedRef.current && progress > 0.01) {
-          globeHintDismissedRef.current = true;
-          setIsGlobeHintDismissed(true);
-        }
-
-        const exactSegment = progress * segmentCount;
-        const segmentIndex = Math.floor(exactSegment);
-        const clampedIndex = Math.min(segmentIndex, segmentCount - 1);
-        const segmentProgress = exactSegment - clampedIndex;
-        const activeIndex =
-          segmentProgress < 0.5 ? clampedIndex : Math.min(clampedIndex + 1, totalTrips - 1);
-
-        const nextUiState = {
-          currentTripIndex: clampedIndex,
-          scrollProgress: segmentProgress,
-          activeTripId: trips[activeIndex]?.id ?? null,
-        };
-        const previousUiState = lastScrollUiStateRef.current;
-
-        if (
-          previousUiState.currentTripIndex !== nextUiState.currentTripIndex ||
-          Math.abs(previousUiState.scrollProgress - nextUiState.scrollProgress) > 0.04
-        ) {
-          setCurrentTripIndex(nextUiState.currentTripIndex);
-          setScrollProgress(nextUiState.scrollProgress);
-        }
-
-        if (
-          !focusedTripIdRef.current &&
-          !isGalleryOpenRef.current &&
-          previousUiState.activeTripId !== nextUiState.activeTripId
-        ) {
-          setActiveTrip(trips[activeIndex]);
-        }
-
-        lastScrollUiStateRef.current = nextUiState;
-      },
-    });
-
-    const handleResize = () => {
-      if (resizeFrame) cancelAnimationFrame(resizeFrame);
-      resizeFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
+    const alignPhotographyHash = () => {
+      if (window.location.hash !== "#photography" || !sectionRef.current) return;
+      sectionRef.current.scrollIntoView({ block: "start" });
     };
 
-    window.addEventListener("resize", handleResize);
+    const alignTimeout = window.setTimeout(alignPhotographyHash, 120);
+    window.addEventListener("hashchange", alignPhotographyHash);
 
     return () => {
-      if (resizeFrame) cancelAnimationFrame(resizeFrame);
-      window.removeEventListener("resize", handleResize);
-      scrollTriggerRef.current?.kill();
-      scrollTriggerRef.current = null;
+      window.clearTimeout(alignTimeout);
+      window.removeEventListener("hashchange", alignPhotographyHash);
     };
-  }, [hasTrips, setIsManualGlobeControlActive]);
+  }, []);
 
   useEffect(() => {
-    if (!cardsContainerRef.current || focusedTripId) return;
+    const selectedTripIndex = activeTrip
+      ? trips.findIndex((trip) => trip.id === activeTrip.id)
+      : currentTripIndex;
+    const targetTripIndex = selectedTripIndex >= 0 ? selectedTripIndex : currentTripIndex;
 
-    const container = cardsContainerRef.current;
-    const activeCard = container.querySelector<HTMLElement>(`[data-trip-index="${currentTripIndex}"]`);
-    activeCard?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [currentTripIndex, focusedTripId]);
+    if (isMobile) {
+      const activeRailItem = mobileRailRef.current?.querySelector<HTMLElement>(
+        `[data-mobile-trip-index="${targetTripIndex}"]`
+      );
+      activeRailItem?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+      return;
+    }
+
+    if (!desktopRouteRailRef.current) return;
+
+    const container = desktopRouteRailRef.current;
+    const activeRouteItem = container.querySelector<HTMLElement>(
+      `[data-desktop-trip-index="${targetTripIndex}"]`
+    );
+    if (!activeRouteItem) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activeRouteItemRect = activeRouteItem.getBoundingClientRect();
+    const targetLeft =
+      container.scrollLeft +
+      activeRouteItemRect.left -
+      containerRect.left -
+      (container.clientWidth - activeRouteItemRect.width) / 2;
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+
+    container.scrollTo({
+      left: Math.max(0, Math.min(targetLeft, maxScrollLeft)),
+      behavior: "smooth",
+    });
+  }, [activeTrip, currentTripIndex, focusedTripId, isMobile]);
 
   const clearFocusTimeout = useCallback(() => {
     if (focusTimeoutRef.current !== null) {
@@ -191,14 +146,16 @@ export function PhotographySection() {
       setIsManualGlobeControlActive(false);
       setFocusedTripId(tripId);
       setActiveTrip(trip);
+      setCameraFocusKey((key) => key + 1);
 
       const tripIndex = trips.findIndex((item) => item.id === tripId);
-      if (sectionRef.current && tripIndex >= 0) {
-        const scrollableDistance = sectionRef.current.offsetHeight - window.innerHeight;
-        const targetProgress = tripIndex === 0 ? 0 : (tripIndex - 0.45) / Math.max(trips.length - 1, 1);
-        const targetScroll = sectionRef.current.offsetTop + scrollableDistance * Math.max(0, targetProgress);
+      if (tripIndex >= 0) {
+        setCurrentTripIndex(tripIndex);
+        setScrollProgress(0);
+      }
 
-        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      if (isMobile) {
+        return;
       }
 
       focusTimeoutRef.current = window.setTimeout(() => {
@@ -206,7 +163,7 @@ export function PhotographySection() {
         focusTimeoutRef.current = null;
       }, 2500);
     },
-    [clearFocusTimeout, setIsManualGlobeControlActive]
+    [clearFocusTimeout, isMobile, setIsManualGlobeControlActive]
   );
 
   const handleGalleryOpen = useCallback(() => {
@@ -225,204 +182,79 @@ export function PhotographySection() {
 
   useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
-  const sectionSegments = Math.max(trips.length - 1, 1);
-  const sectionHeight = hasTrips ? `${100 + sectionSegments * ROUTE_SCROLL_VH_PER_SEGMENT}vh` : "100vh";
-  const showGlobeHint = !isGlobeHintDismissed && !isGalleryOpen;
+  const sectionHeight = "100vh";
+  const activeTripIndex = Math.max(
+    0,
+    activeTrip ? trips.findIndex((trip) => trip.id === activeTrip.id) : currentTripIndex
+  );
+  const activeFrameCount =
+    activeTrip?.albums.reduce((sum, album) => sum + album.photos.length, 0) ?? 0;
+  const canGoPrevious = activeTripIndex > 0;
+  const canGoNext = activeTripIndex < trips.length - 1;
+
+  const handleTripStep = useCallback(
+    (direction: -1 | 1) => {
+      if (!hasTrips) return;
+
+      const nextIndex = Math.min(trips.length - 1, Math.max(0, activeTripIndex + direction));
+      const nextTrip = trips[nextIndex];
+      if (nextTrip) {
+        handleTripSelect(nextTrip.id);
+      }
+    },
+    [activeTripIndex, handleTripSelect, hasTrips]
+  );
 
   return (
-    <section ref={sectionRef} id="photography" className="relative bg-background" style={{ height: sectionHeight }}>
-      <div className="sticky top-0 h-[100dvh] overflow-hidden border-b border-line">
-        <div className="absolute inset-0 z-0">
-          <EarthScene
+    <section
+      ref={sectionRef}
+      id="photography"
+      className="relative scroll-mt-24 bg-background md:scroll-mt-0"
+      style={!isMobile ? { height: sectionHeight } : undefined}
+    >
+      <div
+        className={`overflow-hidden border-b border-line ${
+          isMobile ? "relative min-h-[calc(100svh-6rem)]" : "sticky top-0 h-[100dvh]"
+        }`}
+      >
+        {isMobile ? (
+          <PhotographyMobileExperience
+            hasTrips={hasTrips}
+            totals={totals}
             activeTrip={activeTrip}
-            isOverview={!focusedTripId}
+            activeTripIndex={activeTripIndex}
+            activeFrameCount={activeFrameCount}
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            mobileRailRef={mobileRailRef}
+            onTripSelect={handleTripSelect}
+            onPreviousDestination={() => handleTripStep(-1)}
+            onNextDestination={() => handleTripStep(1)}
+            onOpenGallery={handleGalleryOpen}
+            onEarthLoad={() => setEarthLoaded(true)}
+          />
+        ) : (
+          <PhotographyDesktopExperience
+            hasTrips={hasTrips}
+            totals={totals}
+            activeTrip={activeTrip}
             currentTripIndex={currentTripIndex}
             scrollProgress={scrollProgress}
+            cameraFocusKey={cameraFocusKey}
+            desktopRouteRailRef={desktopRouteRailRef}
             visibleLabelId={visibleLabelId}
+            isManualGlobeControlActive={isManualGlobeControlActive}
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            onEarthLoad={() => setEarthLoaded(true)}
+            onManualGlobeControlStart={handleManualGlobeControlStart}
+            onManualGlobeControlEnd={handleManualGlobeControlEnd}
             onTripSelect={handleTripSelect}
-            onLoad={() => setEarthLoaded(true)}
-            isManualControlActive={isManualGlobeControlActive}
-            onManualControlStart={handleManualGlobeControlStart}
-            onManualControlEnd={handleManualGlobeControlEnd}
+            onPreviousDestination={() => handleTripStep(-1)}
+            onNextDestination={() => handleTripStep(1)}
+            onGalleryOpen={handleGalleryOpen}
           />
-        </div>
-
-        <div className="map-scrim pointer-events-none absolute inset-0 z-10" />
-        <div className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-
-        <div
-          className="pointer-events-none absolute inset-x-5 top-24 z-30 flex justify-center transition duration-500 md:top-28"
-          style={{
-            opacity: showGlobeHint ? 1 : 0,
-            transform: showGlobeHint ? "translate3d(0, 0, 0)" : "translate3d(0, -0.75rem, 0)",
-          }}
-          aria-hidden={!showGlobeHint}
-        >
-          <div className="glass-panel pointer-events-auto max-w-sm p-4 text-center md:max-w-md md:p-5">
-            <p className="eyebrow text-accent">Photography</p>
-            <p className="mt-3 text-sm leading-6 text-primary md:text-base">
-              Drag the globe or choose a destination.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                globeHintDismissedRef.current = true;
-                setIsGlobeHintDismissed(true);
-              }}
-              className="focus-ring mt-4 font-mono text-xs uppercase tracking-[0.12em] text-tertiary transition-colors hover:text-primary"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        <div className="pointer-events-none relative z-20 mx-auto flex h-full max-w-site px-5 py-14 md:px-8 md:py-16">
-          <aside className="pointer-events-auto flex h-full w-full max-w-[31rem] flex-col border-r border-line pr-0 md:pr-8">
-            <div className="shrink-0 border-b border-line pb-5">
-              <div className="mb-4 flex items-center gap-3 text-accent">
-                <Camera className="h-5 w-5" />
-                <p className="eyebrow">Photography</p>
-              </div>
-              <h2 className="max-w-[10ch] text-3xl font-semibold leading-tight text-primary md:text-4xl">
-                Travel photography, organized by place.
-              </h2>
-              <p className="mt-4 max-w-[42ch] text-sm leading-6 text-secondary">
-                Choose a destination or open an album from the map.
-              </p>
-
-              <div className="mt-5 grid grid-cols-3 divide-x divide-line border-y border-line py-4">
-                <div>
-                  <p className="mono-tabular text-2xl text-primary">{trips.length}</p>
-                  <p className="mt-1 text-xs text-tertiary">destinations</p>
-                </div>
-                <div className="pl-5">
-                  <p className="mono-tabular text-2xl text-primary">{totals.frames}</p>
-                  <p className="mt-1 text-xs text-tertiary">frames</p>
-                </div>
-                <div className="pl-5">
-                  <p className="mono-tabular text-2xl text-primary">{totals.albums}</p>
-                  <p className="mt-1 text-xs text-tertiary">albums</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between text-xs uppercase text-tertiary">
-              <span>Destinations</span>
-              <span className="text-accent">Route</span>
-            </div>
-
-            <div
-              ref={cardsContainerRef}
-              className="trip-scroll mt-4 flex-1 overflow-y-auto overscroll-contain pr-3"
-              onWheelCapture={(event) => event.stopPropagation()}
-              onTouchMoveCapture={(event) => event.stopPropagation()}
-            >
-              <div className="divide-y divide-line">
-                {hasTrips ? (
-                  trips.map((trip, index) => (
-                    <TripCard
-                      key={trip.id}
-                      trip={trip}
-                      isActive={trip.id === activeTrip?.id}
-                      isFocused={trip.id === focusedTripId}
-                      index={index}
-                      onClick={() => handleTripSelect(trip.id)}
-                      progress={trip.id === activeTrip?.id ? scrollProgress : 0}
-                    />
-                  ))
-                ) : (
-                  <div className="glass-panel-soft p-6 text-sm leading-7 text-secondary">
-                    No albums loaded.
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 flex shrink-0 items-center gap-3 border-t border-line pt-4 text-sm text-secondary">
-              <Map className="h-4 w-4 text-accent" />
-              <span>Drag globe. Scroll route.</span>
-            </div>
-
-            {activeTrip && (
-              <button
-                type="button"
-                onClick={handleGalleryOpen}
-                className="glass-panel focus-ring mt-3 flex shrink-0 items-center justify-between gap-4 p-4 text-left transition duration-300 active:translate-y-px md:hidden"
-              >
-                <span>
-                  <span className="block text-sm font-medium text-primary">Open {activeTrip.name} album</span>
-                  <span className="mt-1 block text-xs text-tertiary">
-                    {activeTrip.albums.length} album{activeTrip.albums.length === 1 ? "" : "s"}
-                  </span>
-                </span>
-                <Images className="h-4 w-4 shrink-0 text-accent" />
-              </button>
-            )}
-          </aside>
-
-          <div className="pointer-events-none hidden flex-1 items-end justify-end pb-14 md:flex">
-            {activeTrip && (
-              <button
-                type="button"
-                onClick={handleGalleryOpen}
-                className="glass-panel focus-ring pointer-events-auto group w-[min(30rem,42vw)] p-5 text-left transition duration-500"
-                style={{
-                  opacity: hasTrips && isZoomedIn && !isGalleryOpen ? 1 : 0,
-                  transform:
-                    hasTrips && isZoomedIn && !isGalleryOpen
-                      ? "translate3d(0, 0, 0)"
-                      : "translate3d(1.5rem, 0, 0)",
-                  pointerEvents: hasTrips && isZoomedIn && !isGalleryOpen ? "auto" : "none",
-                }}
-              >
-                <div className="mb-5 flex items-start justify-between">
-                  <div>
-                    <p className="mono-tabular text-sm text-accent">
-                      {String(currentTripIndex + 1).padStart(2, "0")} / {activeTrip.name}
-                    </p>
-                    <p className="mt-2 text-xs text-tertiary">
-                      {coordinateLabel(activeTrip.coordinates.lat, "N", "S")},{" "}
-                      {coordinateLabel(activeTrip.coordinates.lng, "E", "W")}
-                    </p>
-                  </div>
-                  <ArrowUpRight className="h-5 w-5 text-accent transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  {activeTrip.albums.slice(0, 3).map((album, index) => (
-                    <div key={album.id} className={index === 0 ? "col-span-2 row-span-2" : ""}>
-                      <img
-                        src={album.coverImage}
-                        alt={album.title}
-                        className="aspect-square h-full w-full border border-line object-cover"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-                  <span className="inline-flex items-center gap-2 text-sm text-primary">
-                    <Images className="h-4 w-4 text-accent" />
-                    View album
-                  </span>
-                  <span className="text-xs text-tertiary">
-                    {activeTrip.albums.length} album{activeTrip.albums.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="absolute right-6 top-1/2 z-20 hidden -translate-y-1/2 flex-col items-center gap-4 text-tertiary lg:flex">
-          <Globe2 className="h-5 w-5 text-accent" />
-          <div className="h-28 w-px bg-line" />
-          <span className="mono-tabular text-xs">
-            {String(currentTripIndex + 1).padStart(2, "0")} / {String(trips.length).padStart(2, "0")}
-          </span>
-        </div>
+        )}
 
         {!earthLoaded && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/90">
