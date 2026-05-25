@@ -14,6 +14,8 @@ interface CameraControllerProps {
   holdTarget?: boolean;
   freeExploreMode?: boolean;
   focusKey?: number;
+  focusDistanceMultiplier?: number;
+  focusElevationMultiplier?: number;
 }
 
 // Smooth easing functions
@@ -33,17 +35,23 @@ export function CameraController({
   holdTarget = false,
   freeExploreMode = false,
   focusKey = 0,
+  focusDistanceMultiplier = 3.55,
+  focusElevationMultiplier = 0.5,
 }: CameraControllerProps) {
   const { camera } = useThree();
 
   // Store trips in ref for useFrame access
   const tripsRef = useRef(trips);
   const radiusRef = useRef(radius);
+  const focusDistanceMultiplierRef = useRef(focusDistanceMultiplier);
+  const focusElevationMultiplierRef = useRef(focusElevationMultiplier);
 
   useEffect(() => {
     tripsRef.current = trips;
     radiusRef.current = radius;
-  }, [trips, radius]);
+    focusDistanceMultiplierRef.current = focusDistanceMultiplier;
+    focusElevationMultiplierRef.current = focusElevationMultiplier;
+  }, [focusDistanceMultiplier, focusElevationMultiplier, trips, radius]);
 
   // Smoothed camera state
   const smoothPosition = useRef(new THREE.Vector3(0, 0, 8));
@@ -154,8 +162,8 @@ export function CameraController({
 
     const { position, lookAt } = getLocationCamera(
       targetTrip,
-      radiusRef.current * 3.55,
-      radiusRef.current * 0.5,
+      radiusRef.current * focusDistanceMultiplierRef.current,
+      radiusRef.current * focusElevationMultiplierRef.current,
       radiusRef.current
     );
 

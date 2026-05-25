@@ -37,6 +37,22 @@ function useIsMobileViewport() {
   return isMobile;
 }
 
+function centerRailItem(container: HTMLDivElement, item: HTMLElement) {
+  const containerRect = container.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  const targetLeft =
+    container.scrollLeft +
+    itemRect.left -
+    containerRect.left -
+    (container.clientWidth - itemRect.width) / 2;
+  const maxScrollLeft = container.scrollWidth - container.clientWidth;
+
+  container.scrollTo({
+    left: Math.max(0, Math.min(targetLeft, maxScrollLeft)),
+    behavior: "smooth",
+  });
+}
+
 export function PhotographySection() {
   const hasTrips = trips.length > 0;
   const isMobile = useIsMobileViewport();
@@ -114,10 +130,15 @@ export function PhotographySection() {
     const targetTripIndex = selectedTripIndex >= 0 ? selectedTripIndex : currentTripIndex;
 
     if (isMobile) {
-      const activeRailItem = mobileRailRef.current?.querySelector<HTMLElement>(
+      const container = mobileRailRef.current;
+      if (!container) return;
+
+      const activeRailItem = container.querySelector<HTMLElement>(
         `[data-mobile-trip-index="${targetTripIndex}"]`
       );
-      activeRailItem?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+      if (activeRailItem) {
+        centerRailItem(container, activeRailItem);
+      }
       return;
     }
 
@@ -133,19 +154,7 @@ export function PhotographySection() {
     );
     if (!activeRouteItem) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const activeRouteItemRect = activeRouteItem.getBoundingClientRect();
-    const targetLeft =
-      container.scrollLeft +
-      activeRouteItemRect.left -
-      containerRect.left -
-      (container.clientWidth - activeRouteItemRect.width) / 2;
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-
-    container.scrollTo({
-      left: Math.max(0, Math.min(targetLeft, maxScrollLeft)),
-      behavior: "smooth",
-    });
+    centerRailItem(container, activeRouteItem);
   }, [activeTrip, currentTripIndex, focusedTripId, isMobile, selectionAnchor, selectionAnchorMode]);
 
   const clearFocusTimeout = useCallback(() => {
@@ -164,15 +173,15 @@ export function PhotographySection() {
       if (!options?.keepManualControl) {
         setIsManualGlobeControlActive(false);
       }
-      if (!isMobile && options?.anchor) {
+      if (options?.anchor) {
         lastSelectionAnchorTimeRef.current = performance.now();
         setSelectionAnchor(options.anchor);
         setSelectionAnchorMode(options.anchorMode ?? "point");
-      } else if (!isMobile && options?.anchorMode === "marker") {
+      } else if (options?.anchorMode === "marker") {
         lastSelectionAnchorTimeRef.current = performance.now();
-        setSelectionAnchor(null);
+        setSelectionAnchor(isMobile ? { x: window.innerWidth / 2, y: window.innerHeight / 2 } : null);
         setSelectionAnchorMode("marker");
-      } else if (!isMobile) {
+      } else {
         setSelectionAnchor(null);
         setSelectionAnchorMode(null);
       }
@@ -193,7 +202,7 @@ export function PhotographySection() {
 
   const handleActiveTripAnchorChange = useCallback(
     (anchor: SelectionAnchor) => {
-      if (isMobile || selectionAnchorMode !== "marker") return;
+      if (selectionAnchorMode !== "marker") return;
 
       setSelectionAnchor((currentAnchor) => {
         if (
@@ -207,7 +216,7 @@ export function PhotographySection() {
         return anchor;
       });
     },
-    [isMobile, selectionAnchorMode]
+    [selectionAnchorMode]
   );
 
   const handleGalleryOpen = useCallback(() => {
@@ -215,6 +224,8 @@ export function PhotographySection() {
       clearFocusTimeout();
       setFocusedTripId(activeTrip.id);
     }
+    setSelectionAnchor(null);
+    setSelectionAnchorMode(null);
     setIsGalleryOpen(true);
   }, [activeTrip, clearFocusTimeout]);
 
@@ -227,7 +238,7 @@ export function PhotographySection() {
   }, [clearFocusTimeout]);
 
   useEffect(() => {
-    if (!selectionAnchor || isMobile) return;
+    if (!selectionAnchor) return;
 
     const hideSelectionOnScroll = () => {
       if (performance.now() - lastSelectionAnchorTimeRef.current < 180) return;
@@ -240,11 +251,28 @@ export function PhotographySection() {
 
     window.addEventListener("scroll", hideSelectionOnScroll, { passive: true });
     return () => window.removeEventListener("scroll", hideSelectionOnScroll);
-  }, [clearFocusTimeout, isMobile, selectionAnchor]);
+  }, [clearFocusTimeout, selectionAnchor]);
+
+  useEffect(() => {
+    if (!selectionAnchor) return;
+
+    const hideSelectionOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-location-popup]")) return;
+      if (performance.now() - lastSelectionAnchorTimeRef.current < 120) return;
+
+      clearFocusTimeout();
+      setFocusedTripId(null);
+      setSelectionAnchor(null);
+      setSelectionAnchorMode(null);
+    };
+
+    document.addEventListener("pointerdown", hideSelectionOnOutsidePointer, true);
+    return () => document.removeEventListener("pointerdown", hideSelectionOnOutsidePointer, true);
+  }, [clearFocusTimeout, selectionAnchor]);
 
   useEffect(() => () => clearFocusTimeout(), [clearFocusTimeout]);
 
-  const sectionHeight = "100vh";
   const activeTripIndex = Math.max(
     0,
     activeTrip ? trips.findIndex((trip) => trip.id === activeTrip.id) : currentTripIndex
@@ -261,22 +289,21 @@ export function PhotographySection() {
       const nextIndex = Math.min(trips.length - 1, Math.max(0, activeTripIndex + direction));
       const nextTrip = trips[nextIndex];
       if (nextTrip) {
-        handleTripSelect(nextTrip.id);
+        handleTripSelect(nextTrip.id, isMobile ? { anchorMode: "marker" } : undefined);
       }
     },
-    [activeTripIndex, handleTripSelect, hasTrips]
+    [activeTripIndex, handleTripSelect, hasTrips, isMobile]
   );
 
   return (
     <section
       ref={sectionRef}
       id="photography"
-      className="relative scroll-mt-24 bg-background md:scroll-mt-0"
-      style={!isMobile ? { height: sectionHeight } : undefined}
+      className="relative scroll-mt-0 bg-background"
     >
       <div
         className={`overflow-hidden border-b border-line ${
-          isMobile ? "relative min-h-[calc(100svh-6rem)]" : "sticky top-0 h-[100dvh]"
+          isMobile ? "relative h-[100svh]" : "relative h-[100dvh]"
         }`}
       >
         {isMobile ? (
@@ -286,10 +313,13 @@ export function PhotographySection() {
             activeTrip={activeTrip}
             activeTripIndex={activeTripIndex}
             activeFrameCount={activeFrameCount}
+            cameraFocusKey={cameraFocusKey}
             canGoPrevious={canGoPrevious}
             canGoNext={canGoNext}
             mobileRailRef={mobileRailRef}
+            isSelectionCardVisible={focusedTripId === activeTrip?.id && Boolean(selectionAnchor)}
             onTripSelect={handleTripSelect}
+            onActiveTripAnchorChange={handleActiveTripAnchorChange}
             onPreviousDestination={() => handleTripStep(-1)}
             onNextDestination={() => handleTripStep(1)}
             onOpenGallery={handleGalleryOpen}
@@ -322,7 +352,7 @@ export function PhotographySection() {
         )}
 
         {!earthLoaded && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center bg-background/90">
+          <div className="absolute inset-0 z-[15] flex items-center justify-center bg-background/78">
             <div className="w-full max-w-sm px-6 text-center">
               <p className="eyebrow text-accent">Loading globe</p>
               <div className="mt-5 h-px overflow-hidden bg-line">

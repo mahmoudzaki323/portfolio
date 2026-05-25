@@ -32,9 +32,13 @@ interface EarthSceneProps {
   onManualControlStart?: () => void;
   onManualControlEnd?: () => void;
   manualControlsEnabled?: boolean;
+  manualControlMode?: "free" | "horizontal";
+  selectTripsWhileDragging?: boolean;
   holdFocus?: boolean;
   freeExploreMode?: boolean;
   focusKey?: number;
+  focusDistanceMultiplier?: number;
+  focusElevationMultiplier?: number;
 }
 
 function Loader({ onLoad }: { onLoad?: () => void }) {
@@ -109,17 +113,22 @@ function ManualGlobeControls({
   onTripSelect,
   onManualControlStart,
   onManualControlEnd,
+  mode = "free",
+  selectTripsWhileDragging = true,
 }: {
   trips: Trip[];
   radius: number;
   onTripSelect?: (tripId: string, options?: TripSelectOptions) => void;
   onManualControlStart?: () => void;
   onManualControlEnd?: () => void;
+  mode?: "free" | "horizontal";
+  selectTripsWhileDragging?: boolean;
 }) {
   const { camera, gl } = useThree();
 
   useEffect(() => {
     const element = gl.domElement;
+    const isHorizontalMode = mode === "horizontal";
     const target = new THREE.Vector3(0, 0, 0);
     const spherical = new THREE.Spherical();
     const start = {
@@ -129,6 +138,8 @@ function ManualGlobeControls({
       phi: 0,
       radius: 0,
       dragging: false,
+      pending: false,
+      pointerId: -1,
     };
     let lastPickedTripId: string | null = null;
     let lastPickedAnchor: TripSelectOptions["anchor"] | null = null;
@@ -180,8 +191,6 @@ function ManualGlobeControls({
     const handlePointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
 
-      onManualControlStart?.();
-      element.setPointerCapture(event.pointerId);
       spherical.setFromVector3(camera.position.clone().sub(target));
 
       start.x = event.clientX;
@@ -189,17 +198,39 @@ function ManualGlobeControls({
       start.theta = spherical.theta;
       start.phi = spherical.phi;
       start.radius = spherical.radius;
-      start.dragging = true;
+      start.pointerId = event.pointerId;
+      start.dragging = !isHorizontalMode;
+      start.pending = isHorizontalMode;
       lastPickedTripId = null;
       lastPickedAnchor = null;
+
+      if (!isHorizontalMode) {
+        onManualControlStart?.();
+        element.setPointerCapture(event.pointerId);
+      }
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (start.pending && event.pointerId === start.pointerId) {
+        const deltaX = event.clientX - start.x;
+        const deltaY = event.clientY - start.y;
+        const distance = Math.hypot(deltaX, deltaY);
+
+        if (distance < 8) return;
+
+        start.pending = false;
+        if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+        start.dragging = true;
+        onManualControlStart?.();
+        element.setPointerCapture(event.pointerId);
+      }
+
       if (!start.dragging) return;
 
       const nextTheta = start.theta - (event.clientX - start.x) * 0.006;
       const nextPhi = THREE.MathUtils.clamp(
-        start.phi - (event.clientY - start.y) * 0.0045,
+        start.phi - (isHorizontalMode ? 0 : event.clientY - start.y) * 0.0045,
         0.28,
         Math.PI - 0.28
       );
@@ -207,12 +238,16 @@ function ManualGlobeControls({
       spherical.set(start.radius, nextPhi, nextTheta);
       camera.position.copy(new THREE.Vector3().setFromSpherical(spherical).add(target));
       camera.lookAt(target);
-      pickTripAtPointer(event);
+      if (selectTripsWhileDragging) {
+        pickTripAtPointer(event);
+      }
     };
 
     const handlePointerEnd = (event: PointerEvent) => {
-      if (!start.dragging) return;
+      if (!start.dragging && !start.pending) return;
       start.dragging = false;
+      start.pending = false;
+      start.pointerId = -1;
       if (element.hasPointerCapture(event.pointerId)) {
         element.releasePointerCapture(event.pointerId);
       }
@@ -233,7 +268,17 @@ function ManualGlobeControls({
       element.removeEventListener("pointerup", handlePointerEnd);
       element.removeEventListener("pointercancel", handlePointerEnd);
     };
-  }, [camera, gl, onManualControlEnd, onManualControlStart, onTripSelect, radius, trips]);
+  }, [
+    camera,
+    gl,
+    mode,
+    onManualControlEnd,
+    onManualControlStart,
+    onTripSelect,
+    radius,
+    selectTripsWhileDragging,
+    trips,
+  ]);
 
   return null;
 }
@@ -249,9 +294,13 @@ function Scene({
   onManualControlStart,
   onManualControlEnd,
   manualControlsEnabled = true,
+  manualControlMode = "free",
+  selectTripsWhileDragging = true,
   holdFocus = false,
   freeExploreMode = false,
   focusKey = 0,
+  focusDistanceMultiplier,
+  focusElevationMultiplier,
 }: EarthSceneProps) {
   const RADIUS = 2;
 
@@ -309,6 +358,8 @@ function Scene({
         holdTarget={holdFocus}
         freeExploreMode={freeExploreMode}
         focusKey={focusKey}
+        focusDistanceMultiplier={focusDistanceMultiplier}
+        focusElevationMultiplier={focusElevationMultiplier}
       />
 
       <ActiveTripScreenAnchor
@@ -324,6 +375,8 @@ function Scene({
           onTripSelect={onTripSelect}
           onManualControlStart={onManualControlStart}
           onManualControlEnd={onManualControlEnd}
+          mode={manualControlMode}
+          selectTripsWhileDragging={selectTripsWhileDragging}
         />
       )}
     </>
@@ -341,13 +394,18 @@ export function EarthScene({
   onManualControlStart,
   onManualControlEnd,
   manualControlsEnabled,
+  manualControlMode,
+  selectTripsWhileDragging,
   holdFocus,
   freeExploreMode,
   focusKey,
+  focusDistanceMultiplier,
+  focusElevationMultiplier,
 }: EarthSceneProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
     typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.1);
+  const allowsManualControls = manualControlsEnabled ?? true;
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -370,7 +428,13 @@ export function EarthScene({
         }}
         dpr={deviceDpr}
         performance={{ min: 0.75 }}
-        style={{ background: "transparent" }}
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          background: "transparent",
+          touchAction: allowsManualControls && manualControlMode !== "horizontal" ? "none" : "pan-y",
+        }}
       >
         <Suspense fallback={null}>
           <Scene
@@ -384,9 +448,13 @@ export function EarthScene({
             onManualControlStart={onManualControlStart}
             onManualControlEnd={onManualControlEnd}
             manualControlsEnabled={manualControlsEnabled}
+            manualControlMode={manualControlMode}
+            selectTripsWhileDragging={selectTripsWhileDragging}
             holdFocus={holdFocus}
             freeExploreMode={freeExploreMode}
             focusKey={focusKey}
+            focusDistanceMultiplier={focusDistanceMultiplier}
+            focusElevationMultiplier={focusElevationMultiplier}
           />
         </Suspense>
       </Canvas>

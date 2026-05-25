@@ -32,7 +32,22 @@ function SectionLoader() {
 
 function DeferredPhotographySection() {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [shouldRender, setShouldRender] = useState(false);
+  const [shouldRender, setShouldRender] = useState(
+    () => typeof window !== "undefined" && window.location.hash === "#photography"
+  );
+
+  useEffect(() => {
+    const renderForHash = () => {
+      if (window.location.hash === "#photography") {
+        setShouldRender(true);
+      }
+    };
+
+    renderForHash();
+    window.addEventListener("hashchange", renderForHash);
+
+    return () => window.removeEventListener("hashchange", renderForHash);
+  }, []);
 
   useEffect(() => {
     if (!sentinelRef.current || shouldRender) return;

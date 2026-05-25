@@ -168,7 +168,7 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
   if (!isOpen || typeof document === "undefined") return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 md:p-8">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-2 md:p-8">
       <button
         type="button"
         aria-label="Close gallery"
@@ -177,40 +177,40 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
       />
 
       <div
-        className="relative z-10 flex max-h-[min(86dvh,58rem)] w-full max-w-6xl animate-[galleryIn_260ms_cubic-bezier(0.16,1,0.3,1)] flex-col overflow-hidden border border-line bg-background/96 shadow-[0_24px_90px_rgba(0,0,0,0.46)]"
+        className="relative z-10 flex max-h-[min(90dvh,58rem)] w-full max-w-6xl animate-[galleryIn_260ms_cubic-bezier(0.16,1,0.3,1)] flex-col overflow-hidden border border-line bg-background/96 shadow-[0_24px_90px_rgba(0,0,0,0.46)] md:max-h-[min(86dvh,58rem)]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="album-gallery-title"
       >
-        <div className="shrink-0 border-b border-line bg-background/98 p-4 md:p-6">
-          <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-start">
+        <div className="relative shrink-0 border-b border-line bg-background/98 p-3 pr-14 md:p-6">
+          <div className="grid gap-2 md:grid-cols-[1fr_auto] md:items-start md:gap-5">
             <div className="min-w-0">
               <p className="eyebrow text-accent">{trip.country}</p>
-              <h2 id="album-gallery-title" className="mt-2 text-2xl font-semibold text-primary md:text-3xl">
+              <h2 id="album-gallery-title" className="mt-1 text-xl font-semibold text-primary md:mt-2 md:text-3xl">
                 {trip.name}
               </h2>
-              <p className="mt-3 max-w-[64ch] text-sm leading-6 text-secondary">
+              <p className="mt-2 max-w-[64ch] overflow-hidden text-xs leading-5 text-secondary [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] md:mt-3 md:text-sm md:leading-6">
                 {activeAlbum.description}
               </p>
             </div>
             <button
               type="button"
               onClick={closeGallery}
-              className="icon-action focus-ring grid h-11 w-11 shrink-0 place-items-center border border-line bg-background"
+              className="icon-action focus-ring absolute right-2 top-2 grid h-9 w-9 shrink-0 place-items-center border border-line bg-background md:static md:h-11 md:w-11"
               aria-label="Close gallery"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 md:h-5 md:w-5" />
             </button>
           </div>
 
-          <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto">
+          <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto md:mt-5">
             {trip.albums.map((album) => (
               <button
                 key={album.id}
                 type="button"
                 onClick={() => setActiveAlbum(album)}
                 className={cn(
-                  "focus-ring whitespace-nowrap border px-4 py-2 text-sm transition-colors",
+                  "focus-ring whitespace-nowrap border px-3 py-1.5 text-xs transition-colors md:px-4 md:py-2 md:text-sm",
                   activeAlbum.id === album.id
                     ? "border-accent bg-accent text-ink"
                     : "border-line text-secondary hover:border-accent/70 hover:text-primary"
@@ -222,8 +222,8 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
           </div>
         </div>
 
-        <div className="trip-scroll flex-1 overflow-y-auto overscroll-contain p-4 md:p-6">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+        <div className="trip-scroll flex-1 overflow-y-auto overscroll-contain p-2.5 md:p-6">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 xl:grid-cols-4">
             {activeAlbum.photos.map((photo, index) => {
               const photoIndex = allPhotos.findIndex((item) => item.id === photo.id);
 

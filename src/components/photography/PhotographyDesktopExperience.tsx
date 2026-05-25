@@ -7,7 +7,6 @@ import {
 } from "react";
 import {
   ArrowUpRight,
-  Camera,
   ChevronLeft,
   ChevronRight,
   MapPin,
@@ -16,11 +15,6 @@ import {
 import { EarthScene } from "../earth/EarthScene";
 import { trips as defaultTrips, type Trip } from "../../data/trips";
 import { cn, formatDateRange } from "../../lib/utils";
-
-interface PhotographyTotals {
-  albums: number;
-  frames: number;
-}
 
 interface SelectionAnchor {
   x: number;
@@ -36,7 +30,10 @@ interface TripSelectOptions {
 interface PhotographyDesktopExperienceProps {
   trips?: Trip[];
   hasTrips: boolean;
-  totals: PhotographyTotals;
+  totals: {
+    albums: number;
+    frames: number;
+  };
   activeTrip: Trip | null;
   currentTripIndex: number;
   scrollProgress: number;
@@ -285,7 +282,7 @@ export function PhotographyDesktopExperience({
 
   return (
     <>
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-y-0 left-[clamp(18rem,32vw,39rem)] right-0 z-0 lg:left-[clamp(24rem,34vw,44rem)]">
         <EarthScene
           activeTrip={activeTrip}
           isOverview={false}
@@ -307,9 +304,32 @@ export function PhotographyDesktopExperience({
       <div className="map-scrim pointer-events-none absolute inset-0 z-10 opacity-60" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-44 bg-gradient-to-t from-background/95 via-background/54 to-transparent" />
 
-      <div className="pointer-events-none relative z-20 mx-auto h-full max-w-site px-5 pt-28 md:px-8">
+      <div className="pointer-events-none relative z-20 mx-auto h-full max-w-site px-5 md:px-8">
+        <header className="absolute left-5 top-[clamp(5.5rem,13vh,8rem)] w-[min(18rem,calc(100vw-2.5rem))] md:left-8 lg:w-[clamp(18rem,28vw,30rem)]">
+          <p className="eyebrow mb-1.5 text-accent">03 / Photography</p>
+          <h2 className="hero-last-name max-w-[9.5ch] text-[clamp(3.1rem,5vw,5.25rem)] leading-[0.78] text-primary">
+            Photography.
+          </h2>
+          <p className="mt-2 max-w-[42ch] text-sm leading-6 text-secondary">
+            A mapped archive of places, albums, and frames from the road.
+          </p>
+          <div className="mt-3 grid max-w-xs gap-1.5 border-l border-line pl-4 text-xs leading-5 text-secondary">
+            <div>
+              <span className="mono-tabular text-primary">{String(trips.length).padStart(2, "0")}</span>{" "}
+              places mapped across the route
+            </div>
+            <div>
+              <span className="mono-tabular text-primary">{totals.albums}</span> albums grouped by destination
+            </div>
+            <div>
+              <span className="mono-tabular text-primary">{totals.frames}</span> frames from the archive
+            </div>
+          </div>
+        </header>
+
         {activeTrip && isSelectionCardVisible && selectionAnchor ? (
           <div
+            data-location-popup
             className="pointer-events-auto fixed z-40 w-64 -translate-x-1/2 -translate-y-[calc(100%+0.625rem)]"
             style={{ left: popupLeft, top: popupTop }}
           >
@@ -346,30 +366,6 @@ export function PhotographyDesktopExperience({
             </div>
           </div>
         ) : null}
-
-        <div className="pointer-events-auto flex items-start justify-between gap-4">
-          <div className="glass-panel inline-flex max-w-[28rem] items-center gap-3 px-3 py-2">
-            <Camera className="h-4 w-4 shrink-0 text-accent" />
-            <div className="min-w-0">
-              <p className="eyebrow text-accent">Photography route</p>
-              <p className="mt-1 truncate text-sm text-primary">
-                {activeTrip?.name ?? "Select a destination"} / {hasTrips ? formatRoutePosition(activeTripIndex, trips.length) : "00 / 00"}
-              </p>
-            </div>
-          </div>
-
-          <div className="glass-panel hidden items-center gap-5 px-3 py-2 text-xs text-secondary lg:flex">
-            <span>
-              <span className="mono-tabular text-primary">{trips.length}</span> places
-            </span>
-            <span>
-              <span className="mono-tabular text-primary">{totals.albums}</span> albums
-            </span>
-            <span>
-              <span className="mono-tabular text-primary">{totals.frames}</span> frames
-            </span>
-          </div>
-        </div>
 
         <div className="pointer-events-auto absolute inset-x-5 bottom-5 mx-auto max-w-site md:inset-x-8 md:bottom-6">
           <section className="glass-panel overflow-hidden p-3">

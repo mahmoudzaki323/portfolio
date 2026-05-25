@@ -158,6 +158,11 @@
     background-position: center top;
   }
 
+  .globe-interaction-layer canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   .hairline {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--color-line), transparent);
