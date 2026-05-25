@@ -307,10 +307,10 @@ export function PhotographyDesktopExperience({
       <div className="pointer-events-none relative z-20 mx-auto h-full max-w-site px-5 md:px-8">
         <header className="absolute left-5 top-[clamp(5.5rem,13vh,8rem)] w-[min(18rem,calc(100vw-2.5rem))] md:left-8 lg:w-[clamp(18rem,28vw,30rem)]">
           <p className="eyebrow mb-1.5 text-accent">03 / Photography</p>
-          <h2 className="hero-last-name max-w-[9.5ch] text-[clamp(3.1rem,5vw,5.25rem)] leading-[0.78] text-primary">
+          <h2 className="hero-last-name max-w-[9.5ch] text-[clamp(3.1rem,5vw,5.25rem)] leading-[0.86] text-primary">
             Photography.
           </h2>
-          <p className="mt-2 max-w-[42ch] text-sm leading-6 text-secondary">
+          <p className="mt-3 max-w-[42ch] text-sm leading-6 text-secondary">
             A mapped archive of places, albums, and frames from the road.
           </p>
           <div className="mt-3 grid max-w-xs gap-1.5 border-l border-line pl-4 text-xs leading-5 text-secondary">

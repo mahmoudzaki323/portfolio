@@ -1,4 +1,4 @@
-import { useState, useCallback, Suspense, useEffect, useRef } from "react";
+import { useCallback, Suspense, useEffect, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, useProgress } from "@react-three/drei";
 import * as THREE from "three";
@@ -402,13 +402,11 @@ export function EarthScene({
   focusDistanceMultiplier,
   focusElevationMultiplier,
 }: EarthSceneProps) {
-  const [isLoaded, setIsLoaded] = useState(false);
   const deviceDpr =
     typeof window === "undefined" ? 1 : Math.min(window.devicePixelRatio || 1, 1.1);
   const allowsManualControls = manualControlsEnabled ?? true;
 
   const handleLoad = useCallback(() => {
-    setIsLoaded(true);
     onLoad?.();
   }, [onLoad]);
 
@@ -459,16 +457,6 @@ export function EarthScene({
         </Suspense>
       </Canvas>
 
-      {!isLoaded && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/70">
-          <div className="w-full max-w-xs px-6 text-center">
-            <span className="eyebrow text-accent">Loading Earth</span>
-            <div className="mt-4 h-px overflow-hidden bg-line">
-              <div className="h-full animate-shimmer bg-accent" />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
