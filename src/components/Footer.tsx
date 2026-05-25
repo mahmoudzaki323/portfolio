@@ -13,17 +13,17 @@ const footerNav = [
 
 export function Footer() {
   return (
-    <footer id="contact" className="section-shell relative min-h-[100svh] overflow-hidden border-t border-line bg-black md:min-h-[100dvh]">
+    <footer id="contact" className="section-shell relative min-h-[72svh] overflow-hidden border-t border-line bg-black md:min-h-[100dvh]">
       <SectionPatternBackground
         patternClassName="opacity-80"
         veilClassName="bg-[radial-gradient(circle_at_82%_18%,rgba(185,155,87,0.13),transparent_28rem),linear-gradient(180deg,rgba(0,0,0,0.48)_0%,rgba(0,0,0,0.82)_100%)]"
       />
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-site flex-col px-5 pb-10 pt-28 md:min-h-[100dvh] md:px-8 md:pb-12 md:pt-24">
+      <div className="relative z-10 mx-auto flex min-h-[72svh] max-w-site flex-col px-5 pb-8 pt-20 md:min-h-[100dvh] md:px-8 md:pb-12 md:pt-24">
         <div className="flex flex-1 items-center">
           <div className="grid w-full gap-8 md:gap-12 lg:grid-cols-[1.2fr_0.8fr]">
             <div>
               <p className="eyebrow mb-3 text-accent md:mb-5">Contact</p>
-              <h2 className="max-w-[11ch] text-4xl font-medium leading-[0.9] text-primary md:text-7xl">
+              <h2 className="max-w-[11ch] text-3xl font-medium leading-[0.9] text-primary md:text-7xl">
                 Mahmoud Zaki
               </h2>
               <p className="mt-4 max-w-[58ch] text-sm leading-7 text-secondary md:mt-7 md:text-base md:leading-8">

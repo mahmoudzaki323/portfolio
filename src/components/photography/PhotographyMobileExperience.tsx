@@ -100,22 +100,22 @@ export function PhotographyMobileExperience({
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-background" />
       </div>
 
-      <div className="pointer-events-none relative mx-auto flex min-h-[100svh] w-full max-w-site flex-col justify-between px-3 pb-[max(3rem,env(safe-area-inset-bottom))] pt-24">
+      <div className="pointer-events-none relative mx-auto flex min-h-[100svh] w-full max-w-site flex-col justify-between px-3 pb-[max(3rem,env(safe-area-inset-bottom))] pt-20">
         <header className="pointer-events-none mx-auto w-full max-w-[22rem] text-center">
           <p className="eyebrow text-accent">03 / Photography</p>
-          <h2 className="mt-1 font-display text-xl font-semibold leading-none text-primary">
+          <h2 className="mt-1 font-display text-lg font-semibold leading-none text-primary">
             Photography
           </h2>
-          <div className="mx-auto mt-2 grid max-w-xs grid-cols-3 divide-x divide-line border-y border-line text-[10px] text-secondary">
-            <div className="px-2 py-1">
-              <span className="mono-tabular text-primary">{String(totalDestinations).padStart(2, "0")}</span>
-            </div>
-            <div className="px-2 py-1">
-              <span className="mono-tabular text-primary">{totals.albums}</span>
-            </div>
-            <div className="px-2 py-1">
-              <span className="mono-tabular text-primary">{totals.frames}</span>
-            </div>
+          <div className="mx-auto mt-1.5 flex max-w-xs justify-center gap-3 text-[10px] text-secondary">
+            <span>
+              <span className="mono-tabular text-primary">{String(totalDestinations).padStart(2, "0")}</span> places
+            </span>
+            <span>
+              <span className="mono-tabular text-primary">{totals.albums}</span> albums
+            </span>
+            <span>
+              <span className="mono-tabular text-primary">{totals.frames}</span> frames
+            </span>
           </div>
         </header>
 

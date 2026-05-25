@@ -10,12 +10,12 @@ function scrollToSection(id: string) {
 
 export function Hero() {
   return (
-    <section className="section-shell relative min-h-[100dvh] overflow-hidden border-b border-line bg-black pt-24 md:pt-28">
+    <section className="section-shell relative min-h-[78svh] overflow-hidden border-b border-line bg-black pt-20 md:min-h-[100dvh] md:pt-28">
       <SectionPatternBackground
         patternClassName="opacity-90"
         veilClassName="bg-[radial-gradient(circle_at_18%_18%,rgba(185,155,87,0.14),transparent_27rem),linear-gradient(90deg,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.64)_43%,rgba(0,0,0,0.22)_100%)]"
       />
-      <div className="relative z-10 mx-auto grid min-h-[calc(100dvh-6rem)] max-w-site grid-cols-1 gap-12 px-5 pb-14 md:px-8 lg:grid-cols-[0.98fr_0.72fr] lg:items-center">
+      <div className="relative z-10 mx-auto grid min-h-[calc(78svh-5rem)] max-w-site grid-cols-1 gap-8 px-5 pb-10 md:min-h-[calc(100dvh-6rem)] md:gap-12 md:px-8 md:pb-14 lg:grid-cols-[0.98fr_0.72fr] lg:items-center">
         <div className="relative z-10 flex flex-col justify-center">
           <div className="mb-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-tertiary">
             <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em]">
@@ -24,16 +24,16 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="max-w-[8.5ch] text-[clamp(5rem,9.8vw,9.4rem)] font-normal leading-[0.82] tracking-[-0.055em] text-primary">
+          <h1 className="max-w-[8.5ch] text-[clamp(4.35rem,20vw,5.25rem)] font-normal leading-[0.82] tracking-[-0.055em] text-primary md:text-[clamp(5rem,9.8vw,9.4rem)]">
             <span className="block">Mahmoud</span>
             <span className="hero-last-name block">Zaki</span>
           </h1>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-[auto_auto]">
+          <div className="mt-7 grid grid-cols-2 gap-2.5 sm:grid-cols-[auto_auto] md:mt-8 md:gap-3">
             <button
               type="button"
               onClick={() => scrollToSection("projects")}
-              className="action-primary focus-ring inline-flex items-center justify-center gap-3 px-6 py-3.5 text-sm font-semibold"
+              className="action-primary focus-ring inline-flex items-center justify-center gap-2.5 px-3 py-3 text-xs font-semibold md:gap-3 md:px-6 md:py-3.5 md:text-sm"
             >
               View work
               <ArrowDown className="h-4 w-4" aria-hidden="true" />
@@ -42,7 +42,7 @@ export function Hero() {
               href={linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="action-secondary focus-ring inline-flex items-center justify-center gap-3 px-6 py-3.5 text-sm"
+              className="action-secondary focus-ring inline-flex items-center justify-center gap-2.5 px-3 py-3 text-xs md:gap-3 md:px-6 md:py-3.5 md:text-sm"
             >
               <Linkedin className="h-4 w-4" aria-hidden="true" />
               LinkedIn
@@ -51,7 +51,7 @@ export function Hero() {
           </div>
         </div>
 
-        <aside className="relative z-10 grid gap-4">
+        <aside className="relative z-10 hidden gap-4 md:grid">
           <div className="glass-panel p-5 md:p-6">
             <p className="eyebrow mb-3 text-accent">Projects</p>
             <h2 className="text-3xl font-medium leading-tight text-primary md:text-4xl">

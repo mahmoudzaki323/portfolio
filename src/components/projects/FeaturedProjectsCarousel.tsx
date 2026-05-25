@@ -16,6 +16,12 @@ interface FeaturedProjectsCarouselProps {
   projects: Project[];
 }
 
+const MOBILE_CAROUSEL_QUERY = "(max-width: 767px)";
+
+function getIsMobileCarouselViewport() {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_CAROUSEL_QUERY).matches;
+}
+
 function LiveBadge() {
   return (
     <span className="live-project-badge absolute right-5 top-5 z-20 inline-flex items-center gap-2 px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.12em] md:right-6 md:top-6">
@@ -44,6 +50,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 
     if (!section || !track) return;
 
+    const mobileMediaQuery = window.matchMedia(MOBILE_CAROUSEL_QUERY);
     let frameId = 0;
     let suppressClickTimeoutId = 0;
     let dragPointerId: number | null = null;
@@ -57,6 +64,22 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       const slideProgress = maxIndex > 0 ? progressRef.current * maxIndex : 0;
       const currentIndex = getActiveSlideIndex(slideProgress, projects.length);
       const slides = Array.from(track.children) as HTMLElement[];
+
+      if (mobileMediaQuery.matches) {
+        track.style.transform = "translate3d(0, 0, 0)";
+        section.style.setProperty(
+          "--carousel-progress",
+          maxIndex > 0 ? (activeIndexRef.current / maxIndex).toFixed(4) : "0"
+        );
+
+        slides.forEach((element) => {
+          element.style.setProperty("--slide-blur", "0px");
+          element.style.setProperty("--slide-opacity", "1");
+          element.style.setProperty("--slide-scale", "1");
+        });
+        return;
+      }
+
       const slideMetrics = slides.map((slide) => ({
         offsetLeft: slide.offsetLeft,
         width: slide.offsetWidth,
@@ -97,6 +120,11 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     };
 
     const syncProgressFromScroll = (immediate = false) => {
+      if (mobileMediaQuery.matches) {
+        if (immediate) updateCarousel();
+        return;
+      }
+
       const sectionRect = section.getBoundingClientRect();
       progressRef.current = getNativeCarouselProgress(
         sectionRect.top,
@@ -121,6 +149,8 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     };
 
     const handleWheel = (event: WheelEvent) => {
+      if (mobileMediaQuery.matches) return;
+
       const scrollDelta = getPageSyncedHorizontalWheelDelta(event, window.innerHeight);
 
       if (!scrollDelta || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -147,6 +177,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       if (
         event.button !== 0 ||
         event.ctrlKey ||
+        mobileMediaQuery.matches ||
         event.pointerType === "touch" ||
         window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
         isDragControl(event.target)
@@ -210,6 +241,11 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     };
 
     const handleResize = () => {
+      if (mobileMediaQuery.matches) {
+        updateCarousel();
+        return;
+      }
+
       syncProgressFromScroll(true);
     };
 
@@ -250,6 +286,19 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     const maxIndex = Math.max(projects.length - 1, 0);
     progressRef.current = maxIndex > 0 ? activeIndex / maxIndex : 0;
     const slides = Array.from(track.children) as HTMLElement[];
+
+    if (getIsMobileCarouselViewport()) {
+      track.style.transform = "translate3d(0, 0, 0)";
+      section.style.setProperty("--carousel-progress", maxIndex > 0 ? (activeIndex / maxIndex).toFixed(4) : "0");
+
+      slides.forEach((element) => {
+        element.style.setProperty("--slide-blur", "0px");
+        element.style.setProperty("--slide-opacity", "1");
+        element.style.setProperty("--slide-scale", "1");
+      });
+      return;
+    }
+
     const slideMetrics = slides.map((slide) => ({
       offsetLeft: slide.offsetLeft,
       width: slide.offsetWidth,
@@ -275,6 +324,12 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     const targetIndex = Math.min(Math.max(index, 0), maxIndex);
     const section = sectionRef.current;
 
+    if (getIsMobileCarouselViewport()) {
+      activeIndexRef.current = targetIndex;
+      setActiveIndex(targetIndex);
+      return;
+    }
+
     if (section && maxIndex > 0) {
       const sectionRect = section.getBoundingClientRect();
       const isPinned =
@@ -299,6 +354,8 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
   };
 
   const handleSlideClickCapture = (index: number, event: MouseEvent<HTMLElement>) => {
+    if (getIsMobileCarouselViewport()) return;
+
     if (suppressClickRef.current) {
       event.preventDefault();
       event.stopPropagation();
@@ -314,6 +371,8 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
   };
 
   const handleViewportClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (getIsMobileCarouselViewport()) return;
+
     if (suppressClickRef.current) {
       event.preventDefault();
       event.stopPropagation();
@@ -462,7 +521,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
                   {hasDemoUrl && <LiveBadge />}
 
                   <div className="featured-carousel-copy">
-                    <div className="flex items-center gap-5">
+                    <div className="featured-carousel-index-row flex items-center gap-5">
                       <p className="mono-tabular text-4xl text-accent/75 md:text-5xl">
                         {String(index + 1).padStart(2, "0")}
                       </p>
@@ -504,7 +563,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
                     )}
 
                     {!project.hideTags && (
-                      <div className="flex flex-wrap gap-x-3 gap-y-2 text-xs text-tertiary">
+                      <div className="featured-carousel-tags flex flex-wrap gap-x-3 gap-y-2 text-xs text-tertiary">
                         {project.tags.slice(0, 6).map((tag) => (
                           <span key={tag} className="font-mono uppercase">
                             {tag}
@@ -513,7 +572,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
                       </div>
                     )}
 
-                    <div className="prism-edge project-shimmer grid grid-cols-3 gap-px bg-line">
+                    <div className="featured-carousel-stats prism-edge project-shimmer grid grid-cols-3 gap-px bg-line">
                       {project.stats.map((stat) => (
                         <div key={stat.label} className="bg-background/90 px-4 py-4 backdrop-blur-sm">
                           <p className="mono-tabular text-xl text-accent md:text-2xl">
@@ -573,7 +632,7 @@ function ProjectPreview({
 }) {
   return (
     <div className="glass-panel overflow-hidden">
-      <div className="border-b border-line px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary">
+      <div className="featured-preview-meta border-b border-line px-4 py-3 font-mono text-xs uppercase tracking-[0.12em] text-tertiary">
         <span>{project.year}</span>
       </div>
       <div className={cn("relative bg-background-soft", isContainedImage ? "aspect-[16/11]" : "aspect-[16/10]")}>
