@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Aperture, Calendar, ChevronLeft, ChevronRight, MapPin, X } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -27,6 +27,8 @@ function PhotoModal({
   hasPrev: boolean;
   hasNext: boolean;
 }) {
+  const imageFrameRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isOpen) return;
@@ -39,60 +41,100 @@ function PhotoModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, hasPrev, hasNext, onClose, onPrev, onNext]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target;
+      const targetElement = target instanceof Element ? target : null;
+
+      if (target && imageFrameRef.current?.contains(target as Node)) return;
+      if (targetElement?.closest("[data-photo-modal-control]")) return;
+
+      onClose();
+    };
+
+    document.addEventListener("click", handleOutsideClick, true);
+    return () => document.removeEventListener("click", handleOutsideClick, true);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div
-      className="absolute inset-0 z-20 flex items-center justify-center overflow-y-auto p-3 pt-16 md:p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-background/88 p-3 md:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="Photo viewer"
     >
       <button
         type="button"
-        aria-label="Close photo"
-        className="absolute inset-0 h-full w-full bg-background/88"
+        aria-label="Close photo backdrop"
+        className="absolute inset-0 z-0 h-full w-full cursor-default"
+        onPointerUp={onClose}
         onClick={onClose}
       />
 
       <button
         type="button"
-        onClick={onClose}
-        className="icon-action focus-ring absolute right-3 top-3 z-20 grid h-11 w-11 place-items-center border border-line bg-background md:right-6 md:top-6"
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClose();
+        }}
+        data-photo-modal-control
+        className="focus-ring absolute right-3 top-3 z-30 grid h-11 w-11 place-items-center border border-line bg-background/95 text-primary shadow-2xl shadow-background/50 backdrop-blur-xl transition hover:border-accent hover:bg-accent-soft md:right-6 md:top-6"
         aria-label="Close photo"
       >
         <X className="h-5 w-5" />
       </button>
 
-      {hasPrev && (
-        <button
-          type="button"
-          onClick={onPrev}
-          className="icon-action focus-ring absolute left-3 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center border border-line bg-background md:left-6"
-          aria-label="Previous photo"
+      <div className="pointer-events-none relative z-10 grid max-h-full w-full max-w-6xl gap-4">
+        <div
+          ref={imageFrameRef}
+          className="pointer-events-auto relative mx-auto max-w-full"
+          onMouseDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
         >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-      )}
-      {hasNext && (
-        <button
-          type="button"
-          onClick={onNext}
-          className="icon-action focus-ring absolute right-3 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center border border-line bg-background md:right-6"
-          aria-label="Next photo"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-      )}
+          <img
+            src={photo.url}
+            alt={photo.caption}
+            className="max-h-[62dvh] max-w-full border border-line object-contain md:max-h-[72dvh]"
+          />
 
-      <div className="relative z-10 grid max-h-full w-full max-w-6xl gap-4">
-        <img
-          src={photo.url}
-          alt={photo.caption}
-          className="mx-auto max-h-[54dvh] w-auto border border-line object-contain md:max-h-[64dvh]"
-        />
+          {hasPrev && (
+            <button
+              type="button"
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onPrev();
+              }}
+              data-photo-modal-control
+              className="focus-ring absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-line bg-background/86 text-primary shadow-2xl shadow-background/50 backdrop-blur-xl transition hover:border-accent hover:bg-accent-soft md:-left-14"
+              aria-label="Previous photo"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          )}
+          {hasNext && (
+            <button
+              type="button"
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                event.stopPropagation();
+                onNext();
+              }}
+              data-photo-modal-control
+              className="focus-ring absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center border border-line bg-background/86 text-primary shadow-2xl shadow-background/50 backdrop-blur-xl transition hover:border-accent hover:bg-accent-soft md:-right-14"
+              aria-label="Next photo"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          )}
+        </div>
 
-        <div className="glass-panel-soft p-5">
+        <button type="button" className="glass-panel-soft pointer-events-auto w-full p-5 text-left" onClick={onClose}>
           <h3 className="text-xl font-semibold text-primary">{photo.caption}</h3>
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-secondary">
             <span className="inline-flex items-center gap-2">
@@ -118,7 +160,7 @@ function PhotoModal({
               {photo.settings.focalLength && <span>{photo.settings.focalLength}</span>}
             </div>
           )}
-        </div>
+        </button>
       </div>
     </div>
   );
@@ -196,7 +238,7 @@ export function AlbumGallery({ trip, isOpen, onClose }: AlbumGalleryProps) {
             <button
               type="button"
               onClick={closeGallery}
-              className="icon-action focus-ring absolute right-2 top-2 grid h-9 w-9 shrink-0 place-items-center border border-line bg-background md:static md:h-11 md:w-11"
+              className="focus-ring absolute right-2 top-2 grid h-9 w-9 shrink-0 place-items-center border border-line bg-background text-primary transition hover:border-accent hover:bg-accent-soft md:static md:h-11 md:w-11"
               aria-label="Close gallery"
             >
               <X className="h-4 w-4 md:h-5 md:w-5" />
