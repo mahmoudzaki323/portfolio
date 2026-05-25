@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUpRight, Github, GraduationCap, Linkedin } from "lucide-react";
+import { SectionPatternBackground } from "./SectionPatternBackground";
 
 const linkedinUrl = "https://www.linkedin.com/in/mahmoudzaki-";
 const githubUrl = "https://github.com/mahmoudzaki323";
@@ -9,8 +10,12 @@ function scrollToSection(id: string) {
 
 export function Hero() {
   return (
-    <section className="section-shell section-grid relative min-h-[100dvh] overflow-hidden border-b border-line pt-24 md:pt-28">
-      <div className="mx-auto grid min-h-[calc(100dvh-6rem)] max-w-site grid-cols-1 gap-12 px-5 pb-14 md:px-8 lg:grid-cols-[0.98fr_0.72fr] lg:items-center">
+    <section className="section-shell relative min-h-[100dvh] overflow-hidden border-b border-line bg-black pt-24 md:pt-28">
+      <SectionPatternBackground
+        patternClassName="opacity-90"
+        veilClassName="bg-[radial-gradient(circle_at_18%_18%,rgba(185,155,87,0.14),transparent_27rem),linear-gradient(90deg,rgba(0,0,0,0.9)_0%,rgba(0,0,0,0.64)_43%,rgba(0,0,0,0.22)_100%)]"
+      />
+      <div className="relative z-10 mx-auto grid min-h-[calc(100dvh-6rem)] max-w-site grid-cols-1 gap-12 px-5 pb-14 md:px-8 lg:grid-cols-[0.98fr_0.72fr] lg:items-center">
         <div className="relative z-10 flex flex-col justify-center">
           <div className="mb-7 flex flex-wrap items-center gap-x-4 gap-y-2 text-tertiary">
             <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.12em]">

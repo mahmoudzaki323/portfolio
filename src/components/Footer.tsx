@@ -1,4 +1,5 @@
 import { ArrowUpRight, Github, Linkedin, MoveUpRight } from "lucide-react";
+import { SectionPatternBackground } from "./SectionPatternBackground";
 
 function scrollToSection(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -12,8 +13,12 @@ const footerNav = [
 
 export function Footer() {
   return (
-    <footer id="contact" className="section-shell min-h-[100svh] border-t border-line md:min-h-[100dvh]">
-      <div className="mx-auto flex min-h-[100svh] max-w-site flex-col px-5 pb-10 pt-28 md:min-h-[100dvh] md:px-8 md:pb-12 md:pt-24">
+    <footer id="contact" className="section-shell relative min-h-[100svh] overflow-hidden border-t border-line bg-black md:min-h-[100dvh]">
+      <SectionPatternBackground
+        patternClassName="opacity-80"
+        veilClassName="bg-[radial-gradient(circle_at_82%_18%,rgba(185,155,87,0.13),transparent_28rem),linear-gradient(180deg,rgba(0,0,0,0.48)_0%,rgba(0,0,0,0.82)_100%)]"
+      />
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-site flex-col px-5 pb-10 pt-28 md:min-h-[100dvh] md:px-8 md:pb-12 md:pt-24">
         <div className="flex flex-1 items-center">
           <div className="grid w-full gap-8 md:gap-12 lg:grid-cols-[1.2fr_0.8fr]">
             <div>

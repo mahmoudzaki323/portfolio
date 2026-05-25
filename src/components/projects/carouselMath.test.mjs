@@ -92,7 +92,7 @@ test("uses native sticky section scroll as carousel progress", () => {
   assert.equal(getNativeCarouselProgress(-540, 1800, 720), 0.5);
   assert.equal(getNativeCarouselProgress(-1080, 1800, 720), 1);
   assert.equal(getNativeCarouselProgress(-1400, 1800, 720), 1);
-  assert.equal(getFeaturedCarouselHeight(3), "calc(100dvh + 164dvh)");
+  assert.equal(getFeaturedCarouselHeight(3), "calc(100dvh + 96dvh)");
 });
 
 test("interpolates slide emphasis without a discrete mid-transition flip", () => {

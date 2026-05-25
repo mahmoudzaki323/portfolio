@@ -44,7 +44,8 @@
 
 @layer base {
   :root,
-  html[data-theme="dark"] {
+  html[data-theme="dark"],
+  .dark {
     color-scheme: dark;
     --color-background: #0b0b09;
     --color-background-soft: #14130f;
@@ -69,15 +70,10 @@
     --color-destructive: #b4534c;
     --color-destructive-foreground: #fff5ed;
     --color-ink: #11100c;
-    --body-background:
-      radial-gradient(circle at 74% 16%, rgba(185, 155, 87, 0.12), transparent 28rem),
-      radial-gradient(circle at 16% 12%, rgba(244, 234, 216, 0.045), transparent 24rem),
-      linear-gradient(180deg, #0b0b09 0%, #11100d 45%, #0b0b09 100%);
-    --section-background:
-      linear-gradient(180deg, rgba(244, 234, 216, 0.018), rgba(244, 234, 216, 0)),
-      var(--color-background);
-    --grid-line-a: rgba(185, 155, 87, 0.085);
-    --grid-line-b: rgba(244, 234, 216, 0.035);
+    --background: oklch(0 0 0);
+    --primary: var(--color-accent);
+    --body-background: oklch(0 0 0);
+    --section-background: oklch(0 0 0);
     --panel-background: linear-gradient(180deg, rgba(244, 234, 216, 0.08), rgba(244, 234, 216, 0.035));
     --panel-soft-background: rgba(244, 234, 216, 0.045);
     --panel-shadow: 0 28px 90px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.045);
@@ -148,14 +144,6 @@
   .section-shell {
     position: relative;
     background: var(--section-background);
-  }
-
-  .section-grid {
-    background-image:
-      linear-gradient(var(--grid-line-b) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line-a) 1px, transparent 1px);
-    background-size: 72px 72px;
-    background-position: center top;
   }
 
   .globe-interaction-layer canvas {
@@ -340,6 +328,7 @@
     width: max-content;
     padding-right: min(16vw, 12rem);
     transform: translate3d(0, 0, 0);
+    transition: none;
     will-change: transform;
   }
 
@@ -354,6 +343,7 @@
     filter: blur(var(--slide-blur, 0));
     transform: scale(var(--slide-scale, 1));
     transform-origin: center;
+    transition: none;
     will-change: opacity, filter, transform;
   }
 

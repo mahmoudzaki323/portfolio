@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlbumGallery } from "./AlbumGallery";
 import { PhotographyDesktopExperience } from "./PhotographyDesktopExperience";
 import { PhotographyMobileExperience } from "./PhotographyMobileExperience";
+import { SectionPatternBackground } from "../SectionPatternBackground";
 import { trips, type Trip } from "../../data/trips";
 
 const MOBILE_QUERY = "(max-width: 767px)";
@@ -299,10 +300,14 @@ export function PhotographySection() {
     <section
       ref={sectionRef}
       id="photography"
-      className="relative scroll-mt-0 bg-background"
+      className="relative overflow-hidden scroll-mt-0 bg-black"
     >
+      <SectionPatternBackground
+        patternClassName="opacity-70"
+        veilClassName="bg-[radial-gradient(circle_at_58%_42%,rgba(185,155,87,0.11),transparent_30rem),linear-gradient(180deg,rgba(0,0,0,0.38)_0%,rgba(0,0,0,0.76)_100%)]"
+      />
       <div
-        className={`overflow-hidden border-b border-line ${
+        className={`relative z-10 overflow-hidden border-b border-line ${
           isMobile ? "relative h-[100svh]" : "relative h-[100dvh]"
         }`}
       >

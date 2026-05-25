@@ -2,6 +2,7 @@ import { FeaturedProjectsCarousel } from "./FeaturedProjectsCarousel";
 import { Gallery4, type Gallery4Item } from "../ui/gallery4";
 import { featuredProjects, otherProjects } from "../../data/projects";
 import type { Project } from "../../data/projects";
+import { SectionPatternBackground } from "../SectionPatternBackground";
 
 function getProjectLink(project: Project) {
   const href =
@@ -51,8 +52,12 @@ const otherProjectItems: Gallery4Item[] = otherProjects.map((project) => {
 
 export function ProjectsSection() {
   return (
-    <section id="projects" className="section-shell section-grid border-b border-line py-24 md:py-32">
-      <div className="mx-auto max-w-site px-5 md:px-8">
+    <section id="projects" className="section-shell relative border-b border-line bg-black py-24 md:py-32">
+      <SectionPatternBackground
+        patternClassName="opacity-75"
+        veilClassName="bg-[radial-gradient(circle_at_78%_8%,rgba(185,155,87,0.11),transparent_26rem),linear-gradient(180deg,rgba(0,0,0,0.46)_0%,rgba(0,0,0,0.78)_100%)]"
+      />
+      <div className="relative z-10 mx-auto max-w-site px-5 md:px-8">
         <div className="border-b border-line pb-12">
           <div>
             <p className="eyebrow mb-5 text-accent">02 / Projects</p>

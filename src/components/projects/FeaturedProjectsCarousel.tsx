@@ -10,8 +10,6 @@ import {
   getNativeCarouselProgress,
   getPageSyncedDragScrollDelta,
   getPageSyncedHorizontalWheelDelta,
-  getPinnedCarouselSnapProgress,
-  getPinnedCarouselSlideProgress,
 } from "./carouselMath";
 
 interface FeaturedProjectsCarouselProps {
@@ -36,6 +34,7 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const activeIndexRef = useRef(0);
+  const skipActiveIndexEffectRef = useRef(false);
   const suppressClickRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -43,10 +42,9 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     const section = sectionRef.current;
     const track = trackRef.current;
 
-    if (!section || !track || projects.length <= 1) return;
+    if (!section || !track) return;
 
     let frameId = 0;
-    let snapTimeoutId = 0;
     let suppressClickTimeoutId = 0;
     let dragPointerId: number | null = null;
     let dragStartX = 0;
@@ -56,9 +54,8 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 
     const updateCarousel = () => {
       const maxIndex = projects.length - 1;
-      const slideProgress = getPinnedCarouselSlideProgress(progressRef.current, projects.length);
-      const stagedProgress = maxIndex > 0 ? slideProgress / maxIndex : 0;
-      const nextActiveIndex = getActiveSlideIndex(slideProgress, projects.length);
+      const slideProgress = maxIndex > 0 ? progressRef.current * maxIndex : 0;
+      const currentIndex = getActiveSlideIndex(slideProgress, projects.length);
       const slides = Array.from(track.children) as HTMLElement[];
       const slideMetrics = slides.map((slide) => ({
         offsetLeft: slide.offsetLeft,
@@ -72,11 +69,12 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       const targetTranslate = lowerTranslate + (upperTranslate - lowerTranslate) * localSlideProgress;
 
       track.style.transform = `translate3d(${-targetTranslate}px, 0, 0)`;
-      section.style.setProperty("--carousel-progress", stagedProgress.toFixed(4));
+      section.style.setProperty("--carousel-progress", progressRef.current.toFixed(4));
 
-      if (activeIndexRef.current !== nextActiveIndex) {
-        activeIndexRef.current = nextActiveIndex;
-        setActiveIndex(nextActiveIndex);
+      if (activeIndexRef.current !== currentIndex) {
+        activeIndexRef.current = currentIndex;
+        skipActiveIndexEffectRef.current = true;
+        setActiveIndex(currentIndex);
       }
 
       slides.forEach((element, index) => {
@@ -98,8 +96,13 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       frameId = window.requestAnimationFrame(renderCarouselFrame);
     };
 
-    const setCarouselProgress = (progress: number, immediate = false) => {
-      progressRef.current = progress;
+    const syncProgressFromScroll = (immediate = false) => {
+      const sectionRect = section.getBoundingClientRect();
+      progressRef.current = getNativeCarouselProgress(
+        sectionRect.top,
+        sectionRect.height,
+        window.innerHeight
+      );
 
       if (immediate) {
         if (frameId) {
@@ -113,70 +116,22 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       requestUpdate();
     };
 
-    const getSectionScrollMetrics = () => {
-      const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-      const scrollableDistance = Math.max(section.offsetHeight - window.innerHeight, 1);
-      const rawProgress = (window.scrollY - sectionTop) / scrollableDistance;
-
-      return {
-        rawProgress,
-        scrollableDistance,
-        sectionTop,
-      };
-    };
-
-    const syncProgressFromScroll = (immediate = false) => {
-      const sectionRect = section.getBoundingClientRect();
-      const nextProgress = getNativeCarouselProgress(
-        sectionRect.top,
-        sectionRect.height,
-        window.innerHeight
-      );
-
-      setCarouselProgress(nextProgress, immediate);
-    };
-
-    const snapToNearestProject = () => {
-      snapTimeoutId = 0;
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-      const { rawProgress, scrollableDistance, sectionTop } = getSectionScrollMetrics();
-
-      if (rawProgress < 0 || rawProgress > 1) return;
-
-      const targetProgress = getPinnedCarouselSnapProgress(rawProgress, projects.length);
-      const targetScrollY = sectionTop + scrollableDistance * targetProgress;
-
-      if (Math.abs(window.scrollY - targetScrollY) < 2) return;
-
-      window.scrollTo({
-        top: targetScrollY,
-        behavior: "smooth",
-      });
-    };
-
-    const scheduleProjectSnap = (delay = 140) => {
-      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
-      snapTimeoutId = window.setTimeout(snapToNearestProject, delay);
-    };
-
     const handleScroll = () => {
       syncProgressFromScroll();
     };
 
     const handleWheel = (event: WheelEvent) => {
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (prefersReducedMotion || event.ctrlKey) return;
-
       const scrollDelta = getPageSyncedHorizontalWheelDelta(event, window.innerHeight);
 
-      if (scrollDelta) {
-        event.preventDefault();
-        window.scrollBy({ top: scrollDelta, left: 0, behavior: "instant" });
-      }
+      if (!scrollDelta || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      scheduleProjectSnap();
+      event.preventDefault();
+
+      window.scrollBy({
+        top: scrollDelta,
+        left: 0,
+        behavior: "instant",
+      });
     };
 
     const isDragControl = (target: EventTarget | null) =>
@@ -205,7 +160,6 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
       dragStartScrollY = window.scrollY;
       hasDragged = false;
 
-      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
       if (suppressClickTimeoutId) window.clearTimeout(suppressClickTimeoutId);
     };
 
@@ -252,7 +206,6 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 
       if (!hasDragged) return;
 
-      scheduleProjectSnap(40);
       suppressClickTimeoutId = window.setTimeout(clearClickSuppression, 400);
     };
 
@@ -272,7 +225,6 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
 
     return () => {
       if (frameId) window.cancelAnimationFrame(frameId);
-      if (snapTimeoutId) window.clearTimeout(snapTimeoutId);
       if (suppressClickTimeoutId) window.clearTimeout(suppressClickTimeoutId);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleResize);
@@ -285,24 +237,65 @@ export function FeaturedProjectsCarousel({ projects }: FeaturedProjectsCarouselP
     };
   }, [projects.length]);
 
-  const jumpToProject = (index: number) => {
+  useEffect(() => {
+    if (skipActiveIndexEffectRef.current) {
+      skipActiveIndexEffectRef.current = false;
+      return;
+    }
+
     const section = sectionRef.current;
-    if (!section || projects.length <= 1) return;
+    const track = trackRef.current;
+    if (!section || !track) return;
+
+    const maxIndex = Math.max(projects.length - 1, 0);
+    progressRef.current = maxIndex > 0 ? activeIndex / maxIndex : 0;
+    const slides = Array.from(track.children) as HTMLElement[];
+    const slideMetrics = slides.map((slide) => ({
+      offsetLeft: slide.offsetLeft,
+      width: slide.offsetWidth,
+    }));
+    const targetTranslate = getCenteredSlideTranslate(slideMetrics, section.clientWidth, activeIndex);
+
+    track.style.transform = `translate3d(${-targetTranslate}px, 0, 0)`;
+    section.style.setProperty("--carousel-progress", maxIndex > 0 ? (activeIndex / maxIndex).toFixed(4) : "0");
+
+    slides.forEach((element, index) => {
+      const visualState = getInterpolatedSlideVisualState(index, activeIndex);
+
+      element.style.setProperty("--slide-blur", `${visualState.blur}px`);
+      element.style.setProperty("--slide-opacity", `${visualState.opacity}`);
+      element.style.setProperty("--slide-scale", `${visualState.scale}`);
+    });
+  }, [activeIndex, projects.length]);
+
+  const jumpToProject = (index: number) => {
+    if (projects.length === 0) return;
 
     const maxIndex = projects.length - 1;
     const targetIndex = Math.min(Math.max(index, 0), maxIndex);
-    const targetProgress = targetIndex / maxIndex;
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const scrollableDistance = Math.max(section.offsetHeight - window.innerHeight, 1);
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const section = sectionRef.current;
+
+    if (section && maxIndex > 0) {
+      const sectionRect = section.getBoundingClientRect();
+      const isPinned =
+        sectionRect.top <= 1 &&
+        sectionRect.bottom >= window.innerHeight - 1;
+
+      if (isPinned) {
+        const sectionTop = sectionRect.top + window.scrollY;
+        const scrollableDistance = Math.max(section.offsetHeight - window.innerHeight, 1);
+        const targetProgress = targetIndex / maxIndex;
+
+        window.scrollTo({
+          top: sectionTop + scrollableDistance * targetProgress,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        });
+        return;
+      }
+    }
 
     activeIndexRef.current = targetIndex;
     setActiveIndex(targetIndex);
-
-    window.scrollTo({
-      top: sectionTop + scrollableDistance * targetProgress,
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    });
   };
 
   const handleSlideClickCapture = (index: number, event: MouseEvent<HTMLElement>) => {

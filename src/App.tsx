@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Navigation } from "./components/Navigation";
 import { Hero } from "./components/Hero";
 import { Footer } from "./components/Footer";
+import { SectionPatternBackground } from "./components/SectionPatternBackground";
 import { ProjectsSection } from "./components/projects/ProjectsSection";
 
 // The globe and photography archive pull in Three.js and the local image index.
@@ -79,9 +80,13 @@ function DeferredPhotographySection() {
     <section
       id="photography"
       ref={sentinelRef}
-      className="relative flex min-h-[100dvh] items-center justify-center border-t border-line bg-background"
+      className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden border-t border-line bg-black"
     >
-      <div className="mx-auto w-full max-w-site px-5 md:px-8">
+      <SectionPatternBackground
+        patternClassName="opacity-70"
+        veilClassName="bg-[radial-gradient(circle_at_58%_42%,rgba(185,155,87,0.11),transparent_30rem),linear-gradient(180deg,rgba(0,0,0,0.38)_0%,rgba(0,0,0,0.76)_100%)]"
+      />
+      <div className="relative z-10 mx-auto w-full max-w-site px-5 md:px-8">
         <div className="max-w-md space-y-5">
           <p className="eyebrow text-accent">Photography</p>
           <h2 className="text-4xl font-display font-semibold text-primary md:text-6xl">
@@ -98,7 +103,7 @@ function DeferredPhotographySection() {
 
 function App() {
   return (
-    <div className="relative min-h-[100dvh] overflow-x-clip bg-background text-primary">
+    <div className="relative min-h-[100dvh] overflow-x-clip bg-black text-primary">
       <a href="#main" className="skip-link">
         Skip to content
       </a>
