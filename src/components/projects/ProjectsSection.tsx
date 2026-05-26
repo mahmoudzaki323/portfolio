@@ -37,7 +37,8 @@ const otherProjectItems: Gallery4Item[] = otherProjects.map((project) => {
   return {
     id: project.id,
     title: project.title,
-    description: project.longDescription,
+    description: project.description,
+    longDescription: project.longDescription,
     href: projectLink?.href,
     linkLabel: projectLink?.label,
     isExternal: projectLink?.isExternal,

@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useEffect, useState, type CSSProperties } from "react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, X } from "lucide-react";
+import { useEffect, useState, type CSSProperties, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,7 @@ export interface Gallery4Item {
   id: string;
   title: string;
   description: string;
+  longDescription?: string;
   href?: string | null;
   image: string;
   year?: string;
@@ -70,6 +72,152 @@ const data: Gallery4Item[] = [
   }
 ];
 
+const DESKTOP_MODAL_QUERY = "(min-width: 768px)";
+
+function Gallery4Modal({
+  item,
+  index,
+  onClose
+}: {
+  item: Gallery4Item;
+  index: number;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, []);
+
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const detailDescription = item.longDescription ?? item.description;
+  const showSummary = detailDescription !== item.description;
+
+  return createPortal(
+    <div className="gallery4-modal-shell">
+      <button
+        type="button"
+        aria-label="Close project details"
+        className="gallery4-modal-backdrop"
+        onClick={onClose}
+      />
+
+      <div
+        className="gallery4-modal prism-edge project-shimmer warm-feature-shell"
+        style={
+          {
+            "--gallery-accent": item.accent ?? "var(--color-accent)"
+          } as CSSProperties
+        }
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`gallery4-modal-title-${item.id}`}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="gallery4-modal-close focus-ring"
+          aria-label={`Close ${item.title} details`}
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div
+          className={cn(
+            "gallery4-modal-media",
+            item.imageFit === "contain" && "gallery4-modal-media-contain"
+          )}
+        >
+          <img
+            src={item.image}
+            alt={`${item.title} preview`}
+            className="gallery4-modal-image"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+
+        <div className="gallery4-modal-content">
+          <div className="gallery4-modal-kicker">
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {item.year && <span>{item.year}</span>}
+          </div>
+
+          <div>
+            <h4
+              id={`gallery4-modal-title-${item.id}`}
+              className="gallery4-modal-title"
+            >
+              {item.title}
+            </h4>
+            {showSummary && (
+              <p className="gallery4-modal-summary">{item.description}</p>
+            )}
+            <p className="gallery4-modal-description">{detailDescription}</p>
+          </div>
+
+          {item.stats && item.stats.length > 0 && (
+            <div className="gallery4-card-stats">
+              {item.stats.map((stat) => (
+                <div key={stat.label} className="min-w-0">
+                  <p className="mono-tabular text-lg text-primary">
+                    {stat.value}
+                  </p>
+                  <p className="truncate text-[11px] text-tertiary">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {item.tags && item.tags.length > 0 && (
+            <div className="gallery4-card-tags">
+              {item.tags.map((tag) => (
+                <span key={tag}>{tag}</span>
+              ))}
+            </div>
+          )}
+
+          {item.href && (
+            <a
+              href={item.href}
+              target={item.isExternal ? "_blank" : undefined}
+              rel={item.isExternal ? "noopener noreferrer" : undefined}
+              className="action-secondary focus-ring gallery4-modal-link"
+            >
+              {item.linkLabel ?? "Read more"}
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 const Gallery4 = ({
   eyebrow = "Other work",
   title = "More work.",
@@ -81,6 +229,11 @@ const Gallery4 = ({
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isDesktopModalEnabled, setIsDesktopModalEnabled] = useState(false);
+  const [activeItem, setActiveItem] = useState<{
+    item: Gallery4Item;
+    index: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!carouselApi) {
@@ -102,6 +255,42 @@ const Gallery4 = ({
       carouselApi.off("reInit", updateSelection);
     };
   }, [carouselApi]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(DESKTOP_MODAL_QUERY);
+
+    const updateViewportMode = () => {
+      setIsDesktopModalEnabled(mediaQuery.matches);
+    };
+
+    updateViewportMode();
+
+    mediaQuery.addEventListener("change", updateViewportMode);
+    return () => mediaQuery.removeEventListener("change", updateViewportMode);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktopModalEnabled && activeItem) {
+      setActiveItem(null);
+    }
+  }, [activeItem, isDesktopModalEnabled]);
+
+  const handleCardClick = (
+    event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
+    item: Gallery4Item,
+    index: number
+  ) => {
+    if (!isDesktopModalEnabled) {
+      return;
+    }
+
+    event.preventDefault();
+    setActiveItem({ item, index });
+  };
 
   if (items.length === 0) {
     return null;
@@ -154,6 +343,11 @@ const Gallery4 = ({
       >
         <CarouselContent className="gallery4-carousel-content">
           {items.map((item, index) => {
+            const ctaLabel = isDesktopModalEnabled
+              ? "Open details"
+              : item.href
+                ? (item.linkLabel ?? "Read more")
+                : "Private build";
             const card = (
               <article
                 className="gallery4-card prism-edge project-shimmer warm-feature-shell"
@@ -215,9 +409,14 @@ const Gallery4 = ({
                   )}
 
                   <div className="gallery4-card-link">
-                    {item.href ? (
+                    {isDesktopModalEnabled ? (
                       <>
-                        {item.linkLabel ?? "Read more"}
+                        {ctaLabel}
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                      </>
+                    ) : item.href ? (
+                      <>
+                        {ctaLabel}
                         <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </>
                     ) : (
@@ -240,10 +439,25 @@ const Gallery4 = ({
                     href={item.href}
                     target={item.isExternal ? "_blank" : undefined}
                     rel={item.isExternal ? "noopener noreferrer" : undefined}
-                    className="group block h-full focus-ring"
+                    className={cn(
+                      "group block h-full focus-ring",
+                      isDesktopModalEnabled && "gallery4-card-trigger"
+                    )}
+                    onClick={(event) => handleCardClick(event, item, index)}
+                    aria-haspopup={isDesktopModalEnabled ? "dialog" : undefined}
                   >
                     {card}
                   </a>
+                ) : isDesktopModalEnabled ? (
+                  <button
+                    type="button"
+                    className="group block h-full w-full text-left focus-ring gallery4-card-trigger"
+                    onClick={(event) => handleCardClick(event, item, index)}
+                    aria-haspopup="dialog"
+                    aria-label={`Open details for ${item.title}`}
+                  >
+                    {card}
+                  </button>
                 ) : (
                   <div className="group h-full">{card}</div>
                 )}
@@ -267,6 +481,14 @@ const Gallery4 = ({
           />
         ))}
       </div>
+
+      {activeItem && (
+        <Gallery4Modal
+          item={activeItem.item}
+          index={activeItem.index}
+          onClose={() => setActiveItem(null)}
+        />
+      )}
     </section>
   );
 };

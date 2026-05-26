@@ -534,6 +534,10 @@
     min-height: clamp(30rem, 48vw, 35rem);
   }
 
+  .gallery4-card-trigger {
+    cursor: pointer;
+  }
+
   .gallery4-card {
     --gallery-accent: var(--color-accent);
     display: flex;
@@ -702,6 +706,162 @@
     color: var(--color-tertiary);
   }
 
+  .gallery4-modal-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .gallery4-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(11, 11, 9, 0.76);
+    backdrop-filter: blur(4px);
+  }
+
+  .gallery4-modal {
+    --gallery-accent: var(--color-accent);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: min(100%, 64rem);
+    max-height: min(84dvh, 46rem);
+    overflow: hidden;
+    border-color: color-mix(in srgb, var(--gallery-accent) 36%, transparent);
+    background:
+      radial-gradient(circle at 76% 14%, color-mix(in srgb, var(--gallery-accent) 22%, transparent), transparent 18rem),
+      linear-gradient(180deg, rgba(244, 234, 216, 0.085), rgba(244, 234, 216, 0.028)),
+      color-mix(in srgb, var(--color-background) 88%, transparent);
+    box-shadow: 0 32px 100px rgba(0, 0, 0, 0.46);
+    animation: galleryIn 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .gallery4-modal-media {
+    position: relative;
+    min-height: 20rem;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, transparent, rgba(11, 11, 9, 0.28) 44%, rgba(11, 11, 9, 0.92)),
+      var(--color-background-soft);
+  }
+
+  .gallery4-modal-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 16%, color-mix(in srgb, var(--gallery-accent) 18%, transparent), transparent 18rem),
+      linear-gradient(180deg, rgba(11, 11, 9, 0.04), rgba(11, 11, 9, 0.78));
+  }
+
+  .gallery4-modal-image {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.84;
+    filter: var(--image-filter);
+  }
+
+  .gallery4-modal-media-contain .gallery4-modal-image {
+    object-fit: contain;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+  }
+
+  .gallery4-modal-content {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 1.1rem;
+    overflow-y: auto;
+    padding: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  .gallery4-modal-kicker {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-right: 3.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-tertiary);
+  }
+
+  .gallery4-modal-title {
+    max-width: 12ch;
+    font-size: clamp(2.1rem, 4vw, 3.8rem);
+    font-weight: 500;
+    line-height: 0.9;
+    color: var(--color-primary);
+  }
+
+  .gallery4-modal-summary {
+    margin-top: 1rem;
+    max-width: 36rem;
+    color: color-mix(in srgb, var(--color-primary) 76%, var(--gallery-accent));
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .gallery4-modal-description {
+    max-width: 38rem;
+    margin-top: 1rem;
+    color: var(--color-secondary);
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+
+  .gallery4-modal-link {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .gallery4-modal-close {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 3;
+    display: grid;
+    height: 2.75rem;
+    width: 2.75rem;
+    place-items: center;
+    border: 1px solid var(--color-line);
+    background: rgba(11, 11, 9, 0.84);
+    color: var(--color-primary);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .gallery4-modal-close:hover,
+  .gallery4-modal-close:focus-visible {
+    border-color: color-mix(in srgb, var(--gallery-accent) 64%, var(--color-primary));
+    background: color-mix(in srgb, var(--gallery-accent) 16%, rgba(11, 11, 9, 0.84));
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .gallery4-modal-close:active {
+    transform: translate3d(0, 1px, 0) scale(0.99);
+  }
+
   .gallery4-dot {
     height: 0.45rem;
     width: 0.45rem;
@@ -722,6 +882,10 @@
   @media (min-width: 768px) {
     .featured-carousel-slide {
       grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.78fr);
+    }
+
+    .gallery4-modal {
+      grid-template-columns: minmax(18rem, 0.92fr) minmax(0, 1.08fr);
     }
   }
 
