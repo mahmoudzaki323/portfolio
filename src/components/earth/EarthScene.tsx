@@ -129,6 +129,7 @@ function ManualGlobeControls({
   useEffect(() => {
     const element = gl.domElement;
     const isHorizontalMode = mode === "horizontal";
+    const dragStartDistance = isHorizontalMode ? 8 : 5;
     const target = new THREE.Vector3(0, 0, 0);
     const spherical = new THREE.Spherical();
     const start = {
@@ -143,6 +144,7 @@ function ManualGlobeControls({
     };
     let lastPickedTripId: string | null = null;
     let lastPickedAnchor: TripSelectOptions["anchor"] | null = null;
+    let pendingSelectionTimeout: number | null = null;
 
     const pickTripAtPointer = (event: PointerEvent) => {
       if (!onTripSelect) return;
@@ -199,15 +201,10 @@ function ManualGlobeControls({
       start.phi = spherical.phi;
       start.radius = spherical.radius;
       start.pointerId = event.pointerId;
-      start.dragging = !isHorizontalMode;
-      start.pending = isHorizontalMode;
+      start.dragging = false;
+      start.pending = true;
       lastPickedTripId = null;
       lastPickedAnchor = null;
-
-      if (!isHorizontalMode) {
-        onManualControlStart?.();
-        element.setPointerCapture(event.pointerId);
-      }
     };
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -216,10 +213,10 @@ function ManualGlobeControls({
         const deltaY = event.clientY - start.y;
         const distance = Math.hypot(deltaX, deltaY);
 
-        if (distance < 8) return;
+        if (distance < dragStartDistance) return;
 
         start.pending = false;
-        if (Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        if (isHorizontalMode && Math.abs(deltaX) <= Math.abs(deltaY)) return;
 
         start.dragging = true;
         onManualControlStart?.();
@@ -245,16 +242,28 @@ function ManualGlobeControls({
 
     const handlePointerEnd = (event: PointerEvent) => {
       if (!start.dragging && !start.pending) return;
+      const wasDragging = start.dragging;
       start.dragging = false;
       start.pending = false;
       start.pointerId = -1;
       if (element.hasPointerCapture(event.pointerId)) {
         element.releasePointerCapture(event.pointerId);
       }
-      if (lastPickedTripId) {
-        onTripSelect?.(lastPickedTripId, lastPickedAnchor ? { anchor: lastPickedAnchor } : undefined);
-      }
+
+      if (!wasDragging) return;
+
       onManualControlEnd?.();
+      if (lastPickedTripId) {
+        const pickedTripId = lastPickedTripId;
+        const pickedAnchor = lastPickedAnchor;
+        if (pendingSelectionTimeout !== null) {
+          window.clearTimeout(pendingSelectionTimeout);
+        }
+        pendingSelectionTimeout = window.setTimeout(() => {
+          pendingSelectionTimeout = null;
+          onTripSelect?.(pickedTripId, pickedAnchor ? { anchor: pickedAnchor } : undefined);
+        }, 0);
+      }
     };
 
     element.addEventListener("pointerdown", handlePointerDown);
@@ -267,6 +276,9 @@ function ManualGlobeControls({
       element.removeEventListener("pointermove", handlePointerMove);
       element.removeEventListener("pointerup", handlePointerEnd);
       element.removeEventListener("pointercancel", handlePointerEnd);
+      if (pendingSelectionTimeout !== null) {
+        window.clearTimeout(pendingSelectionTimeout);
+      }
     };
   }, [
     camera,
